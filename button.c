@@ -3,9 +3,10 @@
 
 //MultiButton
 
-#define HIGH							1
-#define LOW								0
-#define TICKS_INTERVAL		5	//ms
+#define HIGH              1
+#define LOW               0
+
+#define TICKS_INTERVAL    5	//ms
 
 const uint8_t  kDebounceTicks  = 3;
 const uint16_t kClickTicks     = (400/TICKS_INTERVAL);
