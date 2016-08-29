@@ -15,6 +15,7 @@ typedef enum {
 	number_of_event
 }BtnEvent;
 
+
 struct Button {
 	uint16_t ticks;
 	uint8_t  state : 3;
@@ -26,15 +27,14 @@ struct Button {
 	struct Button* next;
 };
 
+
 #ifdef __cplusplus  
 extern "C" {  
 #endif  
 
 void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level);
 void button_attach(struct Button* handle, BtnEvent event, CallBackFunc cb);
-void button_handler(struct Button* handle);
-
-void button_start(struct Button* btn);
+int  button_start(struct Button* btn);
 void button_stop(struct Button* btn);
 void button_ticks(void);
 
