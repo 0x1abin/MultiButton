@@ -1,7 +1,8 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
-#include <stdint.h>
+#include "stdint.h"
+#include "string.h"
 
 typedef void (*CallBackFunc)(void);
 

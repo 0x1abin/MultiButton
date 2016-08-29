@@ -1,11 +1,9 @@
 #include "button.h"
-#include "string.h"
 
 //MultiButton
 
 #define HIGH              1
 #define LOW               0
-
 #define TICKS_INTERVAL    5	//ms
 
 const uint8_t  kDebounceTicks  = 3;
@@ -13,7 +11,6 @@ const uint16_t kClickTicks     = (400/TICKS_INTERVAL);
 const uint16_t kLongTicks      = (1000/TICKS_INTERVAL);
 
 static struct Button* head_handle = NULL;
-
 
 /**
   * @brief  Initializes the button struct handle.
