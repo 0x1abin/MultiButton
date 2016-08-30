@@ -33,6 +33,7 @@ extern "C" {
 
 void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level);
 void button_attach(struct Button* handle, BtnEvent event, CallBackFunc cb);
+int  button_is_pressed(struct Button* handle);
 int  button_start(struct Button* btn);
 void button_stop(struct Button* btn);
 void button_ticks(void);

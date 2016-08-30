@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2016 Zibin Zheng <znbin@qq.com>
+ * All rights reserved
+ */
+
 #include "button.h"
 
 //MultiButton
@@ -7,7 +12,7 @@
 #define TICKS_INTERVAL    5	//ms
 
 //According to your need to modify the constants.
-const uint8_t  kDebounceTicks  = 3;	//MAX 3
+const uint8_t  kDebounceTicks  = 3;	//MAX 8
 const uint16_t kClickTicks     = (400/TICKS_INTERVAL);
 const uint16_t kLongTicks      = (1000/TICKS_INTERVAL);
 
@@ -39,6 +44,16 @@ void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_le
 void button_attach(struct Button* handle, BtnEvent event, CallBackFunc cb)
 {
 	handle->cb[event] = cb;
+}
+
+/**
+  * @brief  Inquire the button is pressed.
+  * @param  handle: the button handle strcut.
+  * @retval 0 not press, 1 pressed.
+  */
+int button_is_pressed(struct Button* handle)
+{
+	return ((handle->button_level == handle->active_level) ? 1:0);
 }
 
 /**

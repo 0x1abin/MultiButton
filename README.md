@@ -27,10 +27,6 @@ int main()
     //make the timer repeat invoking the button_ticks() interval 5ms.
     __timer_start(button_ticks, 0, 5);
     
-    while(ture) 
-    {
-     ...
-    }
 }
 
 void BTN1_SINGLE_CLICK_Handler()
