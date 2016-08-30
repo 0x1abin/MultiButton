@@ -7,14 +7,13 @@
 typedef void (*CallBackFunc)(void);
 
 typedef enum {
-	CLICK = 0,
+	SINGLE_CLICK = 0,
 	DOUBLE_CLICK,
 	LONG_RRESS_START,
 	LONG_PRESS_HOLD,
 	LONG_PRESS_STOP,
 	number_of_event
 }BtnEvent;
-
 
 struct Button {
 	uint16_t ticks;

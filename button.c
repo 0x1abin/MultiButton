@@ -6,10 +6,12 @@
 #define LOW               0
 #define TICKS_INTERVAL    5	//ms
 
-const uint8_t  kDebounceTicks  = 3;
+//According to your need to modify the constants.
+const uint8_t  kDebounceTicks  = 3;	//MAX 3
 const uint16_t kClickTicks     = (400/TICKS_INTERVAL);
 const uint16_t kLongTicks      = (1000/TICKS_INTERVAL);
 
+//button handle list head.
 static struct Button* head_handle = NULL;
 
 /**
@@ -86,7 +88,7 @@ void button_handler(struct Button* handle)
 	case 2:
 		if(handle->ticks > kClickTicks) {	//released
 			//press event
-			if(handle->cb[CLICK]) handle->cb[CLICK]();	//signal click
+			if(handle->cb[SINGLE_CLICK]) handle->cb[SINGLE_CLICK]();	//signal click
 
 			handle->state = 0;	//reset
 
