@@ -37,7 +37,7 @@ int  button_start(struct Button* btn);
 void button_stop(struct Button* btn);
 void button_ticks(void);
 
-#ifdef __cplusplus  
+#ifdef __cplusplus
 } 
 #endif  
 

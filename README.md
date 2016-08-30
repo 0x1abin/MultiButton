@@ -36,7 +36,7 @@ void BTN1_SINGLE_CLICK_Handler()
 
 void BTN1_DOUBLE_Click_Handler()
 {
-    //do something..
+    //do something.. 
 }
 ...
 ```
