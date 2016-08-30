@@ -2,7 +2,7 @@
  * Copyright (c) 2016 Zibin Zheng <znbin@qq.com>
  * All rights reserved
  */
-
+ 
 #include "button.h"
 
 //MultiButton
@@ -110,7 +110,7 @@ void button_handler(struct Button* handle)
 		} else if(handle->button_level == handle->active_level) { //press again
 			handle->state = 3;
 		}
-		break;
+		break; 
 
 	case 3:	//repeat press pressing
 		if(handle->button_level != handle->active_level) {	//double releasd

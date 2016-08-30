@@ -26,7 +26,6 @@ struct Button {
 	struct Button* next;
 };
 
-
 #ifdef __cplusplus  
 extern "C" {  
 #endif  
