@@ -5,8 +5,6 @@
  
 #include "button.h"
 
-//MultiButton
-
 #define HIGH              1
 #define LOW               0
 #define TICKS_INTERVAL    5	//ms
