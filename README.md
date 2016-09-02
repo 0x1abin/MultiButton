@@ -4,29 +4,29 @@
 MultiButton 是一个小巧简单易用的事件驱动型按键驱动模块，可无限量扩展按键，按键事件的回调处理方式可以简化你的程序逻辑，去除冗余的按键处理硬编码，专注你的程序思路。
 
 ## 使用方法
-1. 先申请一个按键结构
+1.先申请一个按键结构
 
 ```
 struct Button button1;
 ```
-2. 初始化按键对象，**read_button_pin()** 为按键的GPIO读取函数，后一个参数为设置触发电平
+2.初始化按键对象，**read_button_pin()** 为按键的GPIO读取函数，后一个参数为设置触发电平
 
 ```
 button_init(&button1, read_button_pin, 0);
 ```
-3. 注册按键事件
+3.注册按键事件
 
 ```
 button_attach(&button1, SINGLE_CLICK, Callback_SINGLE_CLICK_Handler);
 button_attach(&button1, DOUBLE_CLICK, Callback_DOUBLE_Click_Handler);
 ...
 ```
-4. 启动按键
+4.启动按键
 
 ```
 button_start(&button1);
 ```
-5. 设置一个5ms间隔的定时器循环调用后台处理函数
+5.设置一个5ms间隔的定时器循环调用后台处理函数
 
 ```
 while(1) {
