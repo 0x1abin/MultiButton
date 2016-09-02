@@ -54,7 +54,7 @@ struct Button {
     struct Button* next;
 };
 ```
-这样每个按键使用单向链表相连，依次进入 *button_handler(struct Button\* handle)* 状态机处理，所以每个按键的状态彼此独立。
+这样每个按键使用单向链表相连，依次进入 button_handler(struct Button* handle) 状态机处理，所以每个按键的状态彼此独立。
 
 
 ## Examples
@@ -72,7 +72,7 @@ int read_button_pin()
 int main()
 {
     button_init(&button1, read_button_pin, 0);
-    button_attach(&button1, PRESSED,          BTN1_PRESSED_Handler);
+    button_attach(&button1, SINGLE_CLICK,     BTN1_SINGLE_CLICK_Handler);
     button_attach(&button1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
     button_attach(&button1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
     button_attach(&button1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
@@ -80,6 +80,7 @@ int main()
     button_start(&button1);
     
     //make the timer repeat invoking the button_ticks() interval 5ms.
+    //This function is implemented by yourself.
     __timer_start(button_ticks, 0, 5);
     
     while(ture) 
@@ -88,7 +89,7 @@ int main()
     }
 }
 
-void BTN1_PRESSED_Handler()
+void BTN1_SINGLE_CLICK_Handler()
 {
     //do something..
 }
