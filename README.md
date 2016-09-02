@@ -14,12 +14,8 @@ struct Button button1;
 ```
 button_init(&button1, read_button_pin, 0);
 ```
-3. 注册按键事件，共有以下5种事件：
-- PRESSED
-- DOUBLE_CLICK
-- LONG_RRESS_START
-- LONG_PRESS_HOLD
-- LONG_PRESS_STOP
+3. 注册按键事件
+
 ```
 button_attach(&button1, SINGLE_CLICK, Callback_SINGLE_CLICK_Handler);
 button_attach(&button1, DOUBLE_CLICK, Callback_DOUBLE_Click_Handler);
@@ -43,7 +39,7 @@ while(1) {
 }
 ```
 
-## 实现原理
+## 特性
 MultiButton 使用C语言实现，基于面向对象方式设计思路，每个按键对象单独用一份数据结构管理：
 
 ```
