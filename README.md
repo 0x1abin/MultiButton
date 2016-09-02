@@ -72,7 +72,7 @@ int read_button_pin()
 int main()
 {
     button_init(&button1, read_button_pin, 0);
-    button_attach(&button1, SINGLE_CLICK,     BTN1_SINGLE_CLICK_Handler);
+    button_attach(&button1, PRESSED,          BTN1_PRESSED_Handler);
     button_attach(&button1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
     button_attach(&button1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
     button_attach(&button1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
@@ -88,7 +88,7 @@ int main()
     }
 }
 
-void BTN1_SINGLE_CLICK_Handler()
+void BTN1_PRESSED_Handler()
 {
     //do something..
 }
