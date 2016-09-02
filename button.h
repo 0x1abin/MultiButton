@@ -7,7 +7,8 @@
 typedef void (*CallBackFunc)(void);
 
 typedef enum {
-	SINGLE_CLICK = 0,
+	CLICK = 0,
+	PRESSED,
 	DOUBLE_CLICK,
 	LONG_RRESS_START,
 	LONG_PRESS_HOLD,

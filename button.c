@@ -82,6 +82,8 @@ void button_handler(struct Button* handle)
 	switch (handle->state) {
 	case 0:
 		if(handle->button_level == handle->active_level) {	//start press
+			if(handle->cb[CLICK]) handle->cb[CLICK]();
+			
 			handle->ticks = 0;
 			handle->state = 1;
 		}
@@ -101,11 +103,12 @@ void button_handler(struct Button* handle)
 	case 2:
 		if(handle->ticks > kClickTicks) {	//released
 			//press event
-			if(handle->cb[SINGLE_CLICK]) handle->cb[SINGLE_CLICK]();	//signal click
+			if(handle->cb[PRESSED]) handle->cb[PRESSED]();	//press event
 
 			handle->state = 0;	//reset
 
 		} else if(handle->button_level == handle->active_level) { //press again
+			if(handle->cb[CLICK]) handle->cb[CLICK]();
 			handle->state = 3;
 		}
 		break; 

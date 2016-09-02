@@ -16,7 +16,7 @@ int read_button_pin()
 
 int main()
 {
-    button_init(&button1, read_K1_pin, 0);
+    button_init(&button1, read_button_pin, 0);
     button_attach(&button1, SINGLE_CLICK,     BTN1_SINGLE_CLICK_Handler);
     button_attach(&button1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
     button_attach(&button1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
