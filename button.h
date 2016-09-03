@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2016 Zibin Zheng <znbin@qq.com>
+ * All rights reserved
+ */
+ 
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
