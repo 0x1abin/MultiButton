@@ -17,7 +17,7 @@ button_init(&button1, read_button_pin, 0);
 3.注册按键事件
 
 ```
-button_attach(&button1, SINGLE_CLICK, Callback_SINGLE_CLICK_Handler);
+button_attach(&button1, CLICK,        Callback_CLICK_Handler);
 button_attach(&button1, DOUBLE_CLICK, Callback_DOUBLE_Click_Handler);
 ...
 ```
