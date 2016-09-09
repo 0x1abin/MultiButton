@@ -17,7 +17,7 @@ button_init(&button1, read_button_pin, 0);
 3.注册按键事件
 
 ```
-button_attach(&button1, CLICK,        Callback_CLICK_Handler);
+button_attach(&button1, SINGLE_CLICK, Callback_SINGLE_CLICK_Handler);
 button_attach(&button1, DOUBLE_CLICK, Callback_DOUBLE_Click_Handler);
 ...
 ```
@@ -44,14 +44,16 @@ MultiButton 使用C语言实现，基于面向对象方式设计思路，每个�
 
 ```
 struct Button {
-    uint16_t ticks;
-    uint8_t  state : 3;
-    uint8_t  debounce_cnt : 3; 
-    uint8_t  active_level : 1;
-    uint8_t  button_level : 1;
-    uint8_t  (*hal_button_Level)(void);
-    CallBackFunc  cb[number_of_event];
-    struct Button* next;
+	uint16_t ticks;
+	uint8_t  repeat: 4;
+	uint8_t  event : 4;
+	uint8_t  state : 3;
+	uint8_t  debounce_cnt : 3; 
+	uint8_t  active_level : 1;
+	uint8_t  button_level : 1;
+	uint8_t  (*hal_button_Level)(void);
+	BtnCallback  cb[number_of_event];
+	struct Button* next;
 };
 ```
 这样每个按键使用单向链表相连，依次进入 button_handler(struct Button* handle) 状态机处理，所以每个按键的状态彼此独立。
@@ -62,43 +64,46 @@ struct Button {
 ```
 #include "button.h"
 
-struct Button button1;
+struct Button btn1;
 
-int read_button_pin()
+int read_button1_GPIO() 
 {
-    return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);  //HAL GPIO read.
+	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
+
 
 int main()
 {
-    button_init(&button1, read_button_pin, 0);
-    button_attach(&button1, PRESSED,          BTN1_PRESSED_Handler);
-    button_attach(&button1, CLICK,            BTN1_CLICK_Handler);
-    button_attach(&button1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
-    button_attach(&button1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
-    button_attach(&button1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
-    button_attach(&button1, LONG_PRESS_STOP,  BTN1_LONG_PRESS_STOP_Handler);
-    button_start(&button1);
-    
-    //make the timer repeat invoking the button_ticks() interval 5ms.
-    //This function is implemented by yourself.
-    __timer_start(button_ticks, 0, 5);
-    
-    while(ture) 
-    {
-     ...
-    }
+	button_init(&btn1, read_button1_GPIO, 0);
+
+	button_attach(&btn1, PRESS_DOWN,       BTN1_PRESS_DOWN_Handler);
+	button_attach(&btn1, PRESS_UP,         BTN1_PRESS_UP_Handler);
+	button_attach(&btn1, PRESS_REPEAT,     BTN1_PRESS_REPEAT_Handler);
+	button_attach(&btn1, SINGLE_CLICK,     BTN1_SINGLE_Click_Handler);
+	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
+	button_attach(&btn1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
+	button_attach(&btn2, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
+	
+	button_start(&btn1);
+	
+	//make the timer invoking the button_ticks() interval 5ms.
+	//This function is implemented by yourself.
+	__timer_start(button_ticks, 0, 5); 
+	
+	while(1) 
+	{}
 }
 
-void BTN1_PRESSED_Handler()
+void BTN1_PRESS_DOWN_Handler(void* btn)
 {
-    //do something..
+	//do something...
 }
 
-void BTN1_DOUBLE_Click_Handler()
+void BTN1_PRESS_UP_Handler(void* btn)
 {
-    //do something..
+	//do something...
 }
+
 ...
 ```
 

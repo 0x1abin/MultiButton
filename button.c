@@ -5,14 +5,9 @@
 
 #include "button.h"
 
-#define TICKS_INTERVAL    5	//ms
-#define EVENT_CB(ev)   if(handle->cb[ev]){handle->cb[ev](handle)}
+#define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((Button*)handle)
 
-//According to your need to modify the constants.
-const uint8_t  kDebounceTicks  = 3;	//MAX 8
-const uint16_t kShortTicks     = (350/TICKS_INTERVAL);
-const uint16_t kLongTicks      = (1000/TICKS_INTERVAL);
-
+	
 //button handle list head.
 static struct Button* head_handle = NULL;
 
@@ -26,6 +21,7 @@ static struct Button* head_handle = NULL;
 void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level)
 {
 	memset(handle, sizeof(struct Button), 0);
+	handle->event = (uint8_t)NONE_PRESS;
 	handle->hal_button_Level = pin_level;
 	handle->button_level = handle->hal_button_Level();
 	handle->active_level = active_level;
@@ -38,7 +34,7 @@ void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_le
   * @param  cb: callback function.
   * @retval None
   */
-void button_attach(struct Button* handle, PressEvent event, CallBackFunc cb)
+void button_attach(struct Button* handle, PressEvent event, BtnCallback cb)
 {
 	handle->cb[event] = cb;
 }
@@ -48,9 +44,9 @@ void button_attach(struct Button* handle, PressEvent event, CallBackFunc cb)
   * @param  handle: the button handle strcut.
   * @retval button event.
   */
-PressEvent get_button_event(const struct Button* handle)
+PressEvent get_button_event(struct Button* handle)
 {
-	return (handle->event);
+	return (PressEvent)(handle->event);
 }
 
 /**
@@ -68,11 +64,10 @@ void button_handler(struct Button* handle)
 	/*------------button debounce handle---------------*/
 	if(read_gpio_level != handle->button_level) { //not equal to prev one
 		//continue read 3 times same new level change
-		if(++(handle->debounce_cnt) >= kDebounceTicks) {
+		if(++(handle->debounce_cnt) >= DEBOUNCE_TICKS) {
 			handle->button_level = read_gpio_level;
 			handle->debounce_cnt = 0;
 		}
-
 	} else { //leved not change ,counter reset.
 		handle->debounce_cnt = 0;
 	}
@@ -96,7 +91,7 @@ void button_handler(struct Button* handle)
 			handle->ticks = 0;
 			handle->state = 2;
 
-		} else if(handle->ticks > kLongTicks) {
+		} else if(handle->ticks > LONG_TICKS) {
 			handle->event = (uint8_t)LONG_RRESS_START;
 			EVENT_CB(LONG_RRESS_START);
 			handle->state = 5;
@@ -107,7 +102,7 @@ void button_handler(struct Button* handle)
 		if(handle->button_level == handle->active_level) { //press down again
 			handle->event = (uint8_t)PRESS_DOWN;
 			EVENT_CB(PRESS_DOWN);
-			handle->repeat++；
+			handle->repeat++;
 			if(handle->repeat == 2) {
 				handle->event = (uint8_t)DOUBLE_CLICK;
 				EVENT_CB(DOUBLE_CLICK); // repeat hit
@@ -118,7 +113,7 @@ void button_handler(struct Button* handle)
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
-		} else if(handle->ticks > kShortTicks) {
+		} else if(handle->ticks > SHORT_TICKS) {
 			if(handle->repeat == 1) {
 				handle->event = (uint8_t)SINGLE_CLICK;
 				EVENT_CB(SINGLE_CLICK);
@@ -132,7 +127,7 @@ void button_handler(struct Button* handle)
 		if(handle->button_level != handle->active_level) { //released press up
 			handle->event = (uint8_t)PRESS_UP;
 			EVENT_CB(PRESS_UP);
-			if(handle->ticks < kShortTicks) {
+			if(handle->ticks < SHORT_TICKS) {
 				handle->ticks = 0;
 				handle->state = 2; //repeat press
 			} else {
@@ -151,7 +146,7 @@ void button_handler(struct Button* handle)
 
 		} else { //releasd
 			handle->event = (uint8_t)PRESS_UP;
-			EVENT_CB(PRESS_UP)
+			EVENT_CB(PRESS_UP);
 			handle->state = 0; //reset
 			handle->event = (uint8_t)NONE_PRESS;
 		}
