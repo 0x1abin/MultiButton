@@ -2,14 +2,15 @@
  * Copyright (c) 2016 Zibin Zheng <znbin@qq.com>
  * All rights reserved
  */
- 
+
 #include "button.h"
 
 #define TICKS_INTERVAL    5	//ms
+#define EVENT_CB(ev)   if(handle->cb[ev]){handle->cb[ev](handle)}
 
 //According to your need to modify the constants.
 const uint8_t  kDebounceTicks  = 3;	//MAX 8
-const uint16_t kClickTicks     = (400/TICKS_INTERVAL);
+const uint16_t kShortTicks     = (350/TICKS_INTERVAL);
 const uint16_t kLongTicks      = (1000/TICKS_INTERVAL);
 
 //button handle list head.
@@ -37,19 +38,19 @@ void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_le
   * @param  cb: callback function.
   * @retval None
   */
-void button_attach(struct Button* handle, BtnEvent event, CallBackFunc cb)
+void button_attach(struct Button* handle, PressEvent event, CallBackFunc cb)
 {
 	handle->cb[event] = cb;
 }
 
 /**
-  * @brief  Inquire the button is pressed.
+  * @brief  Inquire the button event happen.
   * @param  handle: the button handle strcut.
-  * @retval 0 not press, 1 pressed.
+  * @retval button event.
   */
-int button_is_pressed(struct Button* handle)
+PressEvent get_button_event(const struct Button* handle)
 {
-	return ((handle->button_level == handle->active_level) ? 1:0);
+	return (handle->event);
 }
 
 /**
@@ -79,55 +80,80 @@ void button_handler(struct Button* handle)
 	/*-----------------State machine-------------------*/
 	switch (handle->state) {
 	case 0:
-		if(handle->button_level == handle->active_level) {	//start press
-			if(handle->cb[CLICK]) handle->cb[CLICK]();
-			
+		if(handle->button_level == handle->active_level) {	//start press down
+			handle->event = (uint8_t)PRESS_DOWN;
+			EVENT_CB(PRESS_DOWN);
 			handle->ticks = 0;
+			handle->repeat = 1;
 			handle->state = 1;
 		}
 		break;
 
 	case 1:
-		if(handle->button_level != handle->active_level) { //released
+		if(handle->button_level != handle->active_level) { //released press up
+			handle->event = (uint8_t)PRESS_UP;
+			EVENT_CB(PRESS_UP);
+			handle->ticks = 0;
 			handle->state = 2;
 
 		} else if(handle->ticks > kLongTicks) {
-			if(handle->cb[LONG_RRESS_START]) handle->cb[LONG_RRESS_START]();
-
+			handle->event = (uint8_t)LONG_RRESS_START;
+			EVENT_CB(LONG_RRESS_START);
 			handle->state = 5;
 		}
 		break;
 
 	case 2:
-		if(handle->ticks > kClickTicks) {	//released
-			//press event
-			if(handle->cb[PRESSED]) handle->cb[PRESSED]();	//press event
-
-			handle->state = 0;	//reset
-
-		} else if(handle->button_level == handle->active_level) { //press again
-			if(handle->cb[CLICK]) handle->cb[CLICK]();
+		if(handle->button_level == handle->active_level) { //press down again
+			handle->event = (uint8_t)PRESS_DOWN;
+			EVENT_CB(PRESS_DOWN);
+			handle->repeat++；
+			if(handle->repeat == 2) {
+				handle->event = (uint8_t)DOUBLE_CLICK;
+				EVENT_CB(DOUBLE_CLICK); // repeat hit
+			} else {
+				handle->event = (uint8_t)PRESS_REPEAT;
+			}
+			
+			EVENT_CB(PRESS_REPEAT); // repeat hit
+			handle->ticks = 0;
 			handle->state = 3;
-		}
-		break; 
-
-	case 3:	//repeat press pressing
-		if(handle->button_level != handle->active_level) {	//double releasd
-			//double click event
-			if(handle->cb[DOUBLE_CLICK]) handle->cb[DOUBLE_CLICK]();
-
+		} else if(handle->ticks > kShortTicks) {
+			if(handle->repeat == 1) {
+				handle->event = (uint8_t)SINGLE_CLICK;
+				EVENT_CB(SINGLE_CLICK);
+			}
 			handle->state = 0;
+			handle->event = (uint8_t)NONE_PRESS;
 		}
+		break;
+
+	case 3:
+		if(handle->button_level != handle->active_level) { //released press up
+			handle->event = (uint8_t)PRESS_UP;
+			EVENT_CB(PRESS_UP);
+			if(handle->ticks < kShortTicks) {
+				handle->ticks = 0;
+				handle->state = 2; //repeat press
+			} else {
+				handle->state = 0;
+				handle->event = (uint8_t)NONE_PRESS;
+			}
+		}
+
 		break;
 
 	case 5:
 		if(handle->button_level == handle->active_level) {
 			//continue hold trigger
-			if(handle->cb[LONG_PRESS_HOLD]) handle->cb[LONG_PRESS_HOLD]();
+			handle->event = (uint8_t)LONG_PRESS_HOLD;
+			EVENT_CB(LONG_PRESS_HOLD);
 
 		} else { //releasd
-			if(handle->cb[LONG_PRESS_STOP]) handle->cb[LONG_PRESS_STOP]();
+			handle->event = (uint8_t)PRESS_UP;
+			EVENT_CB(PRESS_UP)
 			handle->state = 0; //reset
+			handle->event = (uint8_t)NONE_PRESS;
 		}
 		break;
 	}

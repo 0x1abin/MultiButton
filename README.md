@@ -90,7 +90,7 @@ int main()
     }
 }
 
-void BTN1_SINGLE_CLICK_Handler()
+void BTN1_PRESSED_Handler()
 {
     //do something..
 }
