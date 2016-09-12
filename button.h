@@ -8,7 +8,6 @@
 
 #include "stdint.h"
 #include "string.h"
-#include "button.h"
 
 
 //According to your need to modify the constants.
@@ -58,6 +57,6 @@ void button_ticks(void);
 
 #ifdef __cplusplus
 } 
-#endif  
+#endif
 
 #endif
