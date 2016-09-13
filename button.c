@@ -135,7 +135,6 @@ void button_handler(struct Button* handle)
 				handle->event = (uint8_t)NONE_PRESS;
 			}
 		}
-
 		break;
 
 	case 5:
