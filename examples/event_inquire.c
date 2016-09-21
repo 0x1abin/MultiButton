@@ -1,4 +1,4 @@
-#include "button.h"
+#include "multi_button.h"
 
 struct Button btn1;
 
