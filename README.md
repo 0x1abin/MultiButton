@@ -40,6 +40,7 @@ while(1) {
 ```
 
 ## 特性
+
 MultiButton 使用C语言实现，基于面向对象方式设计思路，每个按键对象单独用一份数据结构管理：
 
 ```
@@ -59,6 +60,19 @@ struct Button {
 这样每个按键使用单向链表相连，依次进入 button_handler(struct Button* handle) 状态机处理，所以每个按键的状态彼此独立。
 
 
+## 按键事件
+
+事件 | 说明
+---|---
+PRESS_DOWN | 按键按下，每次按下都触发
+PRESS_UP | 按键弹起，每次松开都触发
+PRESS_REPEAT | 重复按下触发，变量repeat计数连击次数
+SINGLE_CLICK | 单击按键事件
+DOUBLE_CLICK | 双击按键事件
+LONG_RRESS_START | 达到长按时间阈值时触发一次
+LONG_PRESS_HOLD | 长按期间一直触发
+
+
 ## Examples
 
 ```
@@ -71,11 +85,9 @@ int read_button1_GPIO()
 	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
 
-
 int main()
 {
 	button_init(&btn1, read_button1_GPIO, 0);
-
 	button_attach(&btn1, PRESS_DOWN,       BTN1_PRESS_DOWN_Handler);
 	button_attach(&btn1, PRESS_UP,         BTN1_PRESS_UP_Handler);
 	button_attach(&btn1, PRESS_REPEAT,     BTN1_PRESS_REPEAT_Handler);
@@ -83,7 +95,6 @@ int main()
 	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
 	button_attach(&btn1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
 	button_attach(&btn2, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
-	
 	button_start(&btn1);
 	
 	//make the timer invoking the button_ticks() interval 5ms.
