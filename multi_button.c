@@ -6,7 +6,6 @@
 #include "multi_button.h"
 
 #define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((Button*)handle)
-
 	
 //button handle list head.
 static struct Button* head_handle = NULL;
