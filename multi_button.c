@@ -80,6 +80,8 @@ void button_handler(struct Button* handle)
 			handle->ticks = 0;
 			handle->repeat = 1;
 			handle->state = 1;
+		} else {
+			handle->event = (uint8_t)NONE_PRESS;
 		}
 		break;
 
@@ -103,22 +105,19 @@ void button_handler(struct Button* handle)
 			EVENT_CB(PRESS_DOWN);
 			handle->repeat++;
 			if(handle->repeat == 2) {
-				handle->event = (uint8_t)DOUBLE_CLICK;
 				EVENT_CB(DOUBLE_CLICK); // repeat hit
-			} else {
-				handle->event = (uint8_t)PRESS_REPEAT;
-			}
-			
+			} 
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
-		} else if(handle->ticks > SHORT_TICKS) {
+		} else if(handle->ticks > SHORT_TICKS) { //released timeout
 			if(handle->repeat == 1) {
 				handle->event = (uint8_t)SINGLE_CLICK;
 				EVENT_CB(SINGLE_CLICK);
+			} else if(handle->repeat == 2) {
+				handle->event = (uint8_t)DOUBLE_CLICK;
 			}
 			handle->state = 0;
-			handle->event = (uint8_t)NONE_PRESS;
 		}
 		break;
 
@@ -131,7 +130,6 @@ void button_handler(struct Button* handle)
 				handle->state = 2; //repeat press
 			} else {
 				handle->state = 0;
-				handle->event = (uint8_t)NONE_PRESS;
 			}
 		}
 		break;
@@ -146,7 +144,6 @@ void button_handler(struct Button* handle)
 			handle->event = (uint8_t)PRESS_UP;
 			EVENT_CB(PRESS_UP);
 			handle->state = 0; //reset
-			handle->event = (uint8_t)NONE_PRESS;
 		}
 		break;
 	}
