@@ -24,11 +24,11 @@ int main()
 		if(btn1_event_val != get_button_event(&btn1)) {
 			btn1_event_val = get_button_event(&btn1);
 			
-			if(btn1_event_val == SINGLE_CLICK) {
+			if(btn1_event_val == PRESS_DOWN) {
 				//do something
-			} else if(btn1_event_val == DOUBLE_CLICK) {
+			} else if(btn1_event_val == PRESS_UP) {
 				//do something
-			} else if(btn1_event_val == LONG_RRESS_START) {
+			} else if(btn1_event_val == LONG_PRESS_HOLD) {
 				//do something
 			}
 		}
