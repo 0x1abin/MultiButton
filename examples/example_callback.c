@@ -3,12 +3,12 @@
 struct Button btn1;
 struct Button btn2;
 
-int read_button1_GPIO() 
+uint8_t read_button1_GPIO() 
 {
 	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
 
-int read_button2_GPIO() 
+uint8_t read_button2_GPIO() 
 {
 	return HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
 }
@@ -24,7 +24,7 @@ int main()
 	button_attach(&btn1, SINGLE_CLICK,     BTN1_SINGLE_Click_Handler);
 	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
 	button_attach(&btn1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
-	button_attach(&btn2, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
+	button_attach(&btn1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
 	
 	button_attach(&btn2, PRESS_DOWN,       BTN2_PRESS_DOWN_Handler);
 	button_attach(&btn2, PRESS_UP,         BTN2_PRESS_UP_Handler);

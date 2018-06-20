@@ -19,7 +19,7 @@ static struct Button* head_handle = NULL;
   */
 void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level)
 {
-	memset(handle, sizeof(struct Button), 0);
+	memset(handle, 0, sizeof(struct Button));
 	handle->event = (uint8_t)NONE_PRESS;
 	handle->hal_button_Level = pin_level;
 	handle->button_level = handle->hal_button_Level();

@@ -2,7 +2,7 @@
 
 struct Button btn1;
 
-int read_button1_GPIO() 
+uint8_t read_button1_GPIO() 
 {
 	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
