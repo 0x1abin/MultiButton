@@ -103,10 +103,7 @@ void button_handler(struct Button* handle)
 		if(handle->button_level == handle->active_level) { //press down again
 			handle->event = (uint8_t)PRESS_DOWN;
 			EVENT_CB(PRESS_DOWN);
-			handle->repeat++;
-			if(handle->repeat == 2) {
-				EVENT_CB(DOUBLE_CLICK); // repeat hit
-			} 
+			handle->repeat++;			
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
@@ -116,6 +113,7 @@ void button_handler(struct Button* handle)
 				EVENT_CB(SINGLE_CLICK);
 			} else if(handle->repeat == 2) {
 				handle->event = (uint8_t)DOUBLE_CLICK;
+				EVENT_CB(DOUBLE_CLICK); // repeat hit
 			}
 			handle->state = 0;
 		}
