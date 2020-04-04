@@ -6,7 +6,7 @@
 #include "multi_button.h"
 
 #define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((Button*)handle)
-	
+
 //button handle list head.
 static struct Button* head_handle = NULL;
 
@@ -93,8 +93,8 @@ void button_handler(struct Button* handle)
 			handle->state = 2;
 
 		} else if(handle->ticks > LONG_TICKS) {
-			handle->event = (uint8_t)LONG_RRESS_START;
-			EVENT_CB(LONG_RRESS_START);
+			handle->event = (uint8_t)LONG_PRESS_START;
+			EVENT_CB(LONG_PRESS_START);
 			handle->state = 5;
 		}
 		break;
@@ -103,7 +103,7 @@ void button_handler(struct Button* handle)
 		if(handle->button_level == handle->active_level) { //press down again
 			handle->event = (uint8_t)PRESS_DOWN;
 			EVENT_CB(PRESS_DOWN);
-			handle->repeat++;			
+			handle->repeat++;
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
