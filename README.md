@@ -33,7 +33,7 @@ while(1) {
     ...
     if(timer_ticks == 5) {
         timer_ticks = 0;
-        
+
         button_ticks();
     }
 }
@@ -49,7 +49,7 @@ struct Button {
 	uint8_t  repeat: 4;
 	uint8_t  event : 4;
 	uint8_t  state : 3;
-	uint8_t  debounce_cnt : 3; 
+	uint8_t  debounce_cnt : 3;
 	uint8_t  active_level : 1;
 	uint8_t  button_level : 1;
 	uint8_t  (*hal_button_Level)(void);
@@ -69,7 +69,7 @@ PRESS_UP | 按键弹起，每次松开都触发
 PRESS_REPEAT | 重复按下触发，变量repeat计数连击次数
 SINGLE_CLICK | 单击按键事件
 DOUBLE_CLICK | 双击按键事件
-LONG_RRESS_START | 达到长按时间阈值时触发一次
+LONG_PRESS_START | 达到长按时间阈值时触发一次
 LONG_PRESS_HOLD | 长按期间一直触发
 
 
@@ -80,7 +80,7 @@ LONG_PRESS_HOLD | 长按期间一直触发
 
 struct Button btn1;
 
-int read_button1_GPIO() 
+int read_button1_GPIO()
 {
 	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
@@ -93,15 +93,15 @@ int main()
 	button_attach(&btn1, PRESS_REPEAT,     BTN1_PRESS_REPEAT_Handler);
 	button_attach(&btn1, SINGLE_CLICK,     BTN1_SINGLE_Click_Handler);
 	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
-	button_attach(&btn1, LONG_RRESS_START, BTN1_LONG_RRESS_START_Handler);
+	button_attach(&btn1, LONG_PRESS_START, BTN1_LONG_PRESS_START_Handler);
 	button_attach(&btn2, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
 	button_start(&btn1);
-	
+
 	//make the timer invoking the button_ticks() interval 5ms.
 	//This function is implemented by yourself.
-	__timer_start(button_ticks, 0, 5); 
-	
-	while(1) 
+	__timer_start(button_ticks, 0, 5);
+
+	while(1)
 	{}
 }
 
