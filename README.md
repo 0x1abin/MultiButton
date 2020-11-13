@@ -80,11 +80,22 @@ LONG_PRESS_HOLD | 长按期间一直触发
 
 struct Button btn1;
 
-int read_button1_GPIO()
+uint8_t read_button1_GPIO()
 {
 	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
+void BTN1_PRESS_DOWN_Handler(void* btn)
+{
+	//do something...
+}
 
+void BTN1_PRESS_UP_Handler(void* btn)
+{
+	//do something...
+}
+
+...
+```
 int main()
 {
 	button_init(&btn1, read_button1_GPIO, 0);
@@ -105,16 +116,5 @@ int main()
 	{}
 }
 
-void BTN1_PRESS_DOWN_Handler(void* btn)
-{
-	//do something...
-}
 
-void BTN1_PRESS_UP_Handler(void* btn)
-{
-	//do something...
-}
-
-...
-```
 
