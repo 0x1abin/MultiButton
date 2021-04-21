@@ -129,6 +129,8 @@ void button_handler(struct Button* handle)
 			} else {
 				handle->state = 0;
 			}
+		} else if(handle->ticks > LONG_TICKS) {
+			handle->state = 5;
 		}
 		break;
 
