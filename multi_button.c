@@ -179,6 +179,7 @@ void button_stop(struct Button* handle)
 		if (entry == handle) {
 			*curr = entry->next;
 //			free(entry);
+			return;
 		} else
 			curr = &entry->next;
 	}
