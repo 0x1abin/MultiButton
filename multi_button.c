@@ -179,7 +179,7 @@ void button_stop(struct Button* handle)
 		if (entry == handle) {
 			*curr = entry->next;
 //			free(entry);
-			return;//glacier add 2021-8-13
+			return;//glacier add 2021-8-18
 		} else
 			curr = &entry->next;
 	}
