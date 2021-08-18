@@ -179,7 +179,7 @@ void button_stop(struct Button* handle)
 		if (entry == handle) {
 			*curr = entry->next;
 //			free(entry);
-			return;
+			return;//glacier add
 		} else
 			curr = &entry->next;
 	}
