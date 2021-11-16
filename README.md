@@ -95,7 +95,7 @@ void BTN1_PRESS_UP_Handler(void* btn)
 }
 
 ...
-```
+
 int main()
 {
 	button_init(&btn1, read_button1_GPIO, 0);
@@ -115,6 +115,6 @@ int main()
 	while(1)
 	{}
 }
-
+```
 
 
