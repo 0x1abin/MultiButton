@@ -25,6 +25,7 @@ void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_le
 	handle->hal_button_Level = pin_level;
 	handle->button_level = handle->hal_button_Level(button_id);
 	handle->active_level = active_level;
+	handle->button_id = button_id;
 }
 
 /**
