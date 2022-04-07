@@ -15,15 +15,10 @@ uint8_t read_button_GPIO(uint8_t button_id)
 	{
 		case btn1_id:
 			return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
-			break;
-
 		case btn2_id:
 			return HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
-			break;
-
 		default:
 			return 0;
-			break;
 	}
 }
 
