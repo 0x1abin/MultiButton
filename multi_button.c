@@ -148,6 +148,9 @@ void button_handler(struct Button* handle)
 			handle->state = 0; //reset
 		}
 		break;
+    default:
+        handle->state = 0; //reset
+        break;
 	}
 }
 
