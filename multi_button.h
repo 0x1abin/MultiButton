@@ -16,39 +16,40 @@
 #define LONG_TICKS        (1000 /TICKS_INTERVAL)
 
 
-typedef void (*BtnCallback)(void*);
+typedef void (*BtnCallback)(void *);
+typedef uint8_t (*BtnLevelCallback)(uint8_t);
 
 typedef enum {
-PRESS_DOWN = 0,
-PRESS_UP,
-PRESS_REPEAT,
-SINGLE_CLICK,
-DOUBLE_CLICK,
-LONG_PRESS_START,
-LONG_PRESS_HOLD,
-number_of_event,
-NONE_PRESS
+	PRESS_DOWN = 0,
+	PRESS_UP,
+	PRESS_REPEAT,
+	SINGLE_CLICK,
+	DOUBLE_CLICK,
+	LONG_PRESS_START,
+	LONG_PRESS_HOLD,
+	number_of_event,
+	NONE_PRESS
 }PressEvent;
 
 typedef struct Button {
-uint16_t ticks;
-uint8_t  repeat : 4;
-uint8_t  event : 4;
-uint8_t  state : 3;
-uint8_t  debounce_cnt : 3;
-uint8_t  active_level : 1;
-uint8_t  button_level : 1;
-uint8_t  button_id;
-uint8_t  (*hal_button_Level)(uint8_t button_id_);
-BtnCallback  cb[number_of_event];
-struct Button* next;
+	uint16_t ticks;
+	uint8_t  repeat : 4;
+	uint8_t  event : 4;
+	uint8_t  state : 3;
+	uint8_t  debounce_cnt : 3;
+	uint8_t  active_level : 1;
+	uint8_t  button_level : 1;
+	uint8_t  button_id;
+    BtnLevelCallback hal_button_Level;
+	BtnCallback  cb[number_of_event];
+	struct Button* next;
 }Button;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void button_init(struct Button* handle, uint8_t(*pin_level)(uint8_t button_id), uint8_t active_level, uint8_t button_id);
+void button_init(struct Button* handle, BtnLevelCallback pin_level, uint8_t active_level, uint8_t button_id);
 void button_attach(struct Button* handle, PressEvent event, BtnCallback cb);
 PressEvent get_button_event(struct Button* handle);
 int  button_start(struct Button* handle);
