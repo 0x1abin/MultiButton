@@ -26,6 +26,7 @@ typedef enum {
 	DOUBLE_CLICK,
 	LONG_PRESS_START,
 	LONG_PRESS_HOLD,
+    LONG_PRESS_CLICK,
 	number_of_event,
 	NONE_PRESS
 }PressEvent;
