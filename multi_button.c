@@ -15,17 +15,15 @@ static struct Button* head_handle = NULL;
   * @param  handle: the button handle strcut.
   * @param  pin_level: read the HAL GPIO of the connet button level.
   * @param  active_level: pressed GPIO level.
-  * @param  button_id: the button id.
   * @retval None
   */
-void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level, uint8_t button_id)
+void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level)
 {
 	memset(handle, 0, sizeof(struct Button));
 	handle->event = (uint8_t)NONE_PRESS;
 	handle->hal_button_Level = pin_level;
-	handle->button_level = handle->hal_button_Level(button_id);
+	handle->button_level = handle->hal_button_Level();
 	handle->active_level = active_level;
-	handle->button_id = button_id;
 }
 
 /**
@@ -57,7 +55,7 @@ PressEvent get_button_event(struct Button* handle)
   */
 void button_handler(struct Button* handle)
 {
-	uint8_t read_gpio_level = handle->hal_button_Level(handle->button_id);
+	uint8_t read_gpio_level = handle->hal_button_Level();
 
 	//ticks counter working..
 	if((handle->state) > 0) handle->ticks++;
@@ -148,9 +146,6 @@ void button_handler(struct Button* handle)
 			handle->state = 0; //reset
 		}
 		break;
-    default:
-        handle->state = 0; //reset
-        break;
 	}
 }
 
@@ -202,3 +197,4 @@ void button_ticks()
 		button_handler(target);
 	}
 }
+

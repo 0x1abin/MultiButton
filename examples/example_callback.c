@@ -1,31 +1,22 @@
 #include "multi_button.h"
 
-enum Button_IDs {
-	btn1_id,
-	btn2_id,
-};
-
 struct Button btn1;
 struct Button btn2;
 
-uint8_t read_button_GPIO(uint8_t button_id)
+uint8_t read_button1_GPIO()
 {
-	// you can share the GPIO read function with multiple Buttons
-	switch(button_id)
-	{
-		case btn1_id:
-			return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
-		case btn2_id:
-			return HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
-		default:
-			return 0;
-	}
+	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+}
+
+uint8_t read_button2_GPIO()
+{
+	return HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
 }
 
 int main()
 {
-	button_init(&btn1, read_button_GPIO, 0, btn1_id);
-	button_init(&btn2, read_button_GPIO, 0, btn2_id);
+	button_init(&btn1, read_button1_GPIO, 0);
+	button_init(&btn2, read_button2_GPIO, 0);
 
 	button_attach(&btn1, PRESS_DOWN,       BTN1_PRESS_DOWN_Handler);
 	button_attach(&btn1, PRESS_UP,         BTN1_PRESS_UP_Handler);
@@ -63,3 +54,5 @@ void BTN1_PRESS_UP_Handler(void* btn)
 {
 	//do something...
 }
+
+...

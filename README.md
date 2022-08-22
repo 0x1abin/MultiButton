@@ -12,7 +12,7 @@ struct Button button1;
 2.初始化按键对象，绑定按键的GPIO电平读取接口**read_button_pin()** ，后一个参数设置有效触发电平
 
 ```c
-button_init(&button1, read_button_pin, 0, 0);
+button_init(&button1, read_button_pin, 0);
 ```
 3.注册按键事件
 
@@ -52,8 +52,7 @@ struct Button {
 	uint8_t  debounce_cnt : 3;
 	uint8_t  active_level : 1;
 	uint8_t  button_level : 1;
-	uint8_t  button_id;
-	uint8_t  (*hal_button_Level)(uint8_t  button_id_);
+	uint8_t  (*hal_button_Level)(void);
 	BtnCallback  cb[number_of_event];
 	struct Button* next;
 };
@@ -79,23 +78,11 @@ LONG_PRESS_HOLD | 长按期间一直触发
 ```c
 #include "button.h"
 
-unit8_t btn1_id = 0;
-
 struct Button btn1;
 
-uint8_t read_button_GPIO(uint8_t button_id)
+uint8_t read_button1_GPIO()
 {
-	// you can share the GPIO read function with multiple Buttons
-	switch(button_id)
-	{
-		case btn1_id:
-			return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
-			break;
-
-		default:
-			return 0;
-			break;
-	}
+	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 }
 void BTN1_PRESS_DOWN_Handler(void* btn)
 {
@@ -111,7 +98,7 @@ void BTN1_PRESS_UP_Handler(void* btn)
 
 int main()
 {
-	button_init(&btn1, read_button_GPIO, 0, btn1_id);
+	button_init(&btn1, read_button1_GPIO, 0);
 	button_attach(&btn1, PRESS_DOWN,       BTN1_PRESS_DOWN_Handler);
 	button_attach(&btn1, PRESS_UP,         BTN1_PRESS_UP_Handler);
 	button_attach(&btn1, PRESS_REPEAT,     BTN1_PRESS_REPEAT_Handler);
