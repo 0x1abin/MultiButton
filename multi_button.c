@@ -10,6 +10,8 @@
 //button handle list head.
 static struct Button* head_handle = NULL;
 
+//button handle list head.
+static struct Button* cur_handle = NULL;
 /**
   * @brief  Initializes the button struct handle.
   * @param  handle: the button handle strcut.
@@ -49,6 +51,15 @@ PressEvent get_button_event(struct Button* handle)
 }
 
 /**
+  * @brief  Inquire the button handle used.
+  * @retval button handler.
+  */
+Button* get_button_current(void)
+{
+	return cur_handle;
+}
+
+/**
   * @brief  Button driver core function, driver state machine.
   * @param  handle: the button handle strcut.
   * @retval None
@@ -56,6 +67,7 @@ PressEvent get_button_event(struct Button* handle)
 void button_handler(struct Button* handle)
 {
 	uint8_t read_gpio_level = handle->hal_button_Level();
+	cur_handle = handle;
 
 	//ticks counter working..
 	if((handle->state) > 0) handle->ticks++;

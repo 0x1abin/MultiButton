@@ -1,58 +1,176 @@
 #include "multi_button.h"
 
-struct Button btn1;
-struct Button btn2;
+typedef enum {
+	BUTTON_ID_0,
+	BUTTON_ID_2,
 
-uint8_t read_button1_GPIO()
+	BUTTON_ID_MAX
+
+} BUTTON_ID_INDEX;
+
+struct Button btnGroup[BUTTON_ID_MAX];
+uint8_t btnActiveLevel[BUTTON_ID_MAX] = {0, 0};
+
+uint8_t read_button_level()
 {
-	return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+	uint8_t code = 0x01;
+	for (size_t i = 0; i < BUTTON_ID_MAX; i++)
+	{
+		if (get_button_current() == &btnGroup[i])
+		{
+			switch (i)
+			{
+			case BUTTON_ID_0:
+				code = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+				break;
+			case BUTTON_ID_2:
+				code = HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+	return code;
 }
 
-uint8_t read_button2_GPIO()
+void BTN_EVENT_Handler(void *btn)
 {
-	return HAL_GPIO_ReadPin(B2_GPIO_Port, B2_Pin);
+	for (size_t i = 0; i < BUTTON_ID_MAX; i++)
+	{
+		if (((Button *)btn) == &btnGroup[i])
+		{
+			switch (((Button *)btn)->event)
+			{
+			case PRESS_DOWN:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case PRESS_UP:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case PRESS_REPEAT:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case SINGLE_CLICK:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case DOUBLE_CLICK:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case LONG_PRESS_START:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+			case LONG_PRESS_HOLD:
+				switch (i)
+				{
+				case BUTTON_ID_0:
+					// do something
+					break;
+				case BUTTON_ID_2:
+					// do something
+					break;
+
+				default:
+					break;
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
 }
 
 int main()
 {
-	button_init(&btn1, read_button1_GPIO, 0);
-	button_init(&btn2, read_button2_GPIO, 0);
+	for (size_t i = 0; i < BUTTON_ID_MAX; i++)
+	{
+		button_init(&btnGroup[i], read_button_level, btnActiveLevel[i]);
 
-	button_attach(&btn1, PRESS_DOWN,       BTN1_PRESS_DOWN_Handler);
-	button_attach(&btn1, PRESS_UP,         BTN1_PRESS_UP_Handler);
-	button_attach(&btn1, PRESS_REPEAT,     BTN1_PRESS_REPEAT_Handler);
-	button_attach(&btn1, SINGLE_CLICK,     BTN1_SINGLE_Click_Handler);
-	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
-	button_attach(&btn1, LONG_PRESS_START, BTN1_LONG_PRESS_START_Handler);
-	button_attach(&btn1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
+		button_attach(&btnGroup[i], PRESS_DOWN, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], PRESS_UP, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], PRESS_REPEAT, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], SINGLE_CLICK, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], DOUBLE_CLICK, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], LONG_PRESS_START, BTN_EVENT_Handler);
+		button_attach(&btnGroup[i], LONG_PRESS_HOLD, BTN_EVENT_Handler);
 
-	button_attach(&btn2, PRESS_DOWN,       BTN2_PRESS_DOWN_Handler);
-	button_attach(&btn2, PRESS_UP,         BTN2_PRESS_UP_Handler);
-	button_attach(&btn2, PRESS_REPEAT,     BTN2_PRESS_REPEAT_Handler);
-	button_attach(&btn2, SINGLE_CLICK,     BTN2_SINGLE_Click_Handler);
-	button_attach(&btn2, DOUBLE_CLICK,     BTN2_DOUBLE_Click_Handler);
-	button_attach(&btn2, LONG_PRESS_START, BTN2_LONG_PRESS_START_Handler);
-	button_attach(&btn2, LONG_PRESS_HOLD,  BTN2_LONG_PRESS_HOLD_Handler);
+		button_start(&btnGroup[i]);
+	}
 
-	button_start(&btn1);
-	button_start(&btn2);
-
-	//make the timer invoking the button_ticks() interval 5ms.
-	//This function is implemented by yourself.
+	// make the timer invoking the button_ticks() interval 5ms.
+	// This function is implemented by yourself.
 	__timer_start(button_ticks, 0, 5);
 
-	while(1)
-	{}
+	while (1)
+	{
+	}
 }
-
-void BTN1_PRESS_DOWN_Handler(void* btn)
-{
-	//do something...
-}
-
-void BTN1_PRESS_UP_Handler(void* btn)
-{
-	//do something...
-}
-
-...

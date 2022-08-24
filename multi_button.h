@@ -50,6 +50,7 @@ extern "C" {
 void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level);
 void button_attach(struct Button* handle, PressEvent event, BtnCallback cb);
 PressEvent get_button_event(struct Button* handle);
+Button* get_button_current(void);
 int  button_start(struct Button* handle);
 void button_stop(struct Button* handle);
 void button_ticks(void);
