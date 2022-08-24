@@ -38,8 +38,7 @@ typedef struct Button {
 	uint8_t  debounce_cnt : 3;
 	uint8_t  active_level : 1;
 	uint8_t  button_level : 1;
-	uint8_t  button_id;
-	uint8_t  (*hal_button_Level)(uint8_t button_id_);
+	uint8_t  (*hal_button_Level)(void);
 	BtnCallback  cb[number_of_event];
 	struct Button* next;
 }Button;
@@ -48,9 +47,10 @@ typedef struct Button {
 extern "C" {
 #endif
 
-void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level, uint8_t button_id);
+void button_init(struct Button* handle, uint8_t(*pin_level)(), uint8_t active_level);
 void button_attach(struct Button* handle, PressEvent event, BtnCallback cb);
 PressEvent get_button_event(struct Button* handle);
+Button* get_button_current(void);
 int  button_start(struct Button* handle);
 void button_stop(struct Button* handle);
 void button_ticks(void);
