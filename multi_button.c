@@ -106,6 +106,7 @@ void button_handler(struct Button* handle)
 			handle->event = (uint8_t)PRESS_DOWN;
 			EVENT_CB(PRESS_DOWN);
 			handle->repeat++;
+			handle->event = (uint8_t)PRESS_REPEAT;
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
