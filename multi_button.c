@@ -12,8 +12,8 @@ static struct Button* head_handle = NULL;
 
 /**
   * @brief  Initializes the button struct handle.
-  * @param  handle: the button handle strcut.
-  * @param  pin_level: read the HAL GPIO of the connet button level.
+  * @param  handle: the button handle struct.
+  * @param  pin_level: read the HAL GPIO of the connected button level.
   * @param  active_level: pressed GPIO level.
   * @param  button_id: the button id.
   * @retval None
@@ -30,7 +30,7 @@ void button_init(struct Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t ac
 
 /**
   * @brief  Attach the button event callback function.
-  * @param  handle: the button handle strcut.
+  * @param  handle: the button handle struct.
   * @param  event: trigger event type.
   * @param  cb: callback function.
   * @retval None
@@ -42,7 +42,7 @@ void button_attach(struct Button* handle, PressEvent event, BtnCallback cb)
 
 /**
   * @brief  Inquire the button event happen.
-  * @param  handle: the button handle strcut.
+  * @param  handle: the button handle struct.
   * @retval button event.
   */
 PressEvent get_button_event(struct Button* handle)
@@ -52,7 +52,7 @@ PressEvent get_button_event(struct Button* handle)
 
 /**
   * @brief  Button driver core function, driver state machine.
-  * @param  handle: the button handle strcut.
+  * @param  handle: the button handle struct.
   * @retval None
   */
 void button_handler(struct Button* handle)
@@ -69,7 +69,7 @@ void button_handler(struct Button* handle)
 			handle->button_level = read_gpio_level;
 			handle->debounce_cnt = 0;
 		}
-	} else { //leved not change ,counter reset.
+	} else { //level not change ,counter reset.
 		handle->debounce_cnt = 0;
 	}
 
@@ -156,7 +156,7 @@ void button_handler(struct Button* handle)
 
 /**
   * @brief  Start the button work, add the handle into work list.
-  * @param  handle: target handle strcut.
+  * @param  handle: target handle struct.
   * @retval 0: succeed. -1: already exist.
   */
 int button_start(struct Button* handle)
@@ -173,7 +173,7 @@ int button_start(struct Button* handle)
 
 /**
   * @brief  Stop the button work, remove the handle off work list.
-  * @param  handle: target handle strcut.
+  * @param  handle: target handle struct.
   * @retval None
   */
 void button_stop(struct Button* handle)
