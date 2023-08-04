@@ -18,7 +18,7 @@ uint8_t read_button_GPIO(uint8_t button_id)
 
 int main()
 {
-	static uint8_t btn1_event_val;
+	static PressEvent btn1_event_val;
 
 	button_init(&btn1, read_button_GPIO, 0, btn1_id);
 	button_start(&btn1);

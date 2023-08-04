@@ -10,6 +10,8 @@
 //button handle list head.
 static struct Button* head_handle = NULL;
 
+static void button_handler(struct Button* handle);
+
 /**
   * @brief  Initializes the button struct handle.
   * @param  handle: the button handle struct.
@@ -55,7 +57,7 @@ PressEvent get_button_event(struct Button* handle)
   * @param  handle: the button handle struct.
   * @retval None
   */
-void button_handler(struct Button* handle)
+static void button_handler(struct Button* handle)
 {
 	uint8_t read_gpio_level = handle->hal_button_Level(handle->button_id);
 
@@ -93,7 +95,6 @@ void button_handler(struct Button* handle)
 			EVENT_CB(PRESS_UP);
 			handle->ticks = 0;
 			handle->state = 2;
-
 		} else if(handle->ticks > LONG_TICKS) {
 			handle->event = (uint8_t)LONG_PRESS_START;
 			EVENT_CB(LONG_PRESS_START);
@@ -131,7 +132,7 @@ void button_handler(struct Button* handle)
 			} else {
 				handle->state = 0;
 			}
-		}else if(handle->ticks > SHORT_TICKS){ // long press up
+		} else if(handle->ticks > SHORT_TICKS) { // long press up
 			handle->state = 0;
 		}
 		break;
@@ -141,16 +142,15 @@ void button_handler(struct Button* handle)
 			//continue hold trigger
 			handle->event = (uint8_t)LONG_PRESS_HOLD;
 			EVENT_CB(LONG_PRESS_HOLD);
-
 		} else { //releasd
 			handle->event = (uint8_t)PRESS_UP;
 			EVENT_CB(PRESS_UP);
 			handle->state = 0; //reset
 		}
 		break;
-    default:
-        handle->state = 0; //reset
-        break;
+	default:
+		handle->state = 0; //reset
+		break;
 	}
 }
 
@@ -181,12 +181,13 @@ void button_stop(struct Button* handle)
 	struct Button** curr;
 	for(curr = &head_handle; *curr; ) {
 		struct Button* entry = *curr;
-		if (entry == handle) {
+		if(entry == handle) {
 			*curr = entry->next;
 //			free(entry);
 			return;//glacier add 2021-8-18
-		} else
+		} else {
 			curr = &entry->next;
+		}
 	}
 }
 
@@ -195,7 +196,7 @@ void button_stop(struct Button* handle)
   * @param  None.
   * @retval None
   */
-void button_ticks()
+void button_ticks(void)
 {
 	struct Button* target;
 	for(target=head_handle; target; target=target->next) {
