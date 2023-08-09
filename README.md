@@ -118,7 +118,7 @@ int main()
 	button_attach(&btn1, SINGLE_CLICK,     BTN1_SINGLE_Click_Handler);
 	button_attach(&btn1, DOUBLE_CLICK,     BTN1_DOUBLE_Click_Handler);
 	button_attach(&btn1, LONG_PRESS_START, BTN1_LONG_PRESS_START_Handler);
-	button_attach(&btn2, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
+	button_attach(&btn1, LONG_PRESS_HOLD,  BTN1_LONG_PRESS_HOLD_Handler);
 	button_start(&btn1);
 
 	//make the timer invoking the button_ticks() interval 5ms.
@@ -129,5 +129,3 @@ int main()
 	{}
 }
 ```
-
-
