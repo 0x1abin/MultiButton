@@ -143,8 +143,8 @@ static void button_handler(struct Button* handle)
 			handle->event = (uint8_t)LONG_PRESS_HOLD;
 			EVENT_CB(LONG_PRESS_HOLD);
 		} else { //releasd
-			handle->event = (uint8_t)PRESS_UP;
-			EVENT_CB(PRESS_UP);
+			handle->event = (uint8_t)LONG_PRESS_CLICK;
+            EVENT_CB(LONG_PRESS_CLICK);
 			handle->state = 0; //reset
 		}
 		break;
