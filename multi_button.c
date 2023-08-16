@@ -5,7 +5,7 @@
 
 #include "multi_button.h"
 
-#define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((Button*)handle)
+#define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((void*)handle)
 
 //button handle list head.
 static struct Button* head_handle = NULL;
@@ -142,7 +142,7 @@ static void button_handler(struct Button* handle)
 			//continue hold trigger
 			handle->event = (uint8_t)LONG_PRESS_HOLD;
 			EVENT_CB(LONG_PRESS_HOLD);
-		} else { //releasd
+		} else { //released
 			handle->event = (uint8_t)PRESS_UP;
 			EVENT_CB(PRESS_UP);
 			handle->state = 0; //reset
