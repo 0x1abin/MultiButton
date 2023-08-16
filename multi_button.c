@@ -6,6 +6,7 @@
 #include "multi_button.h"
 
 #define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((void*)handle)
+#define PRESS_REPEAT_MAX_NUM  15 /*!< The maximum value of the repeat counter */
 
 //button handle list head.
 static struct Button* head_handle = NULL;
@@ -106,7 +107,9 @@ static void button_handler(struct Button* handle)
 		if(handle->button_level == handle->active_level) { //press down again
 			handle->event = (uint8_t)PRESS_DOWN;
 			EVENT_CB(PRESS_DOWN);
-			handle->repeat++;
+			if(handle->repeat != PRESS_REPEAT_MAX_NUM) {
+				handle->repeat++;
+			}
 			EVENT_CB(PRESS_REPEAT); // repeat hit
 			handle->ticks = 0;
 			handle->state = 3;
