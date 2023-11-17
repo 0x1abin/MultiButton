@@ -6,8 +6,8 @@
 #ifndef _MULTI_BUTTON_H_
 #define _MULTI_BUTTON_H_
 
-#include "stdint.h"
-#include "string.h"
+#include <stdint.h>
+#include <string.h>
 
 //According to your need to modify the constants.
 #define TICKS_INTERVAL    5	//ms
