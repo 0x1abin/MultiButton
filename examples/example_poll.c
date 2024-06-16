@@ -1,6 +1,6 @@
 #include "multi_button.h"
 
-unit8_t btn1_id = 0;
+uint8_t btn1_id = 0;
 struct Button btn1;
 
 uint8_t read_button_GPIO(uint8_t button_id)
