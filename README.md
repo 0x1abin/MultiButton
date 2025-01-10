@@ -79,7 +79,7 @@ LONG_PRESS_HOLD | 长按期间一直触发
 ```c
 #include "button.h"
 
-unit8_t btn1_id = 0;
+uint8_t btn1_id = 0;
 
 struct Button btn1;
 
