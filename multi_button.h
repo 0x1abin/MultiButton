@@ -32,6 +32,8 @@ typedef enum {
 
 typedef struct Button {
 	uint16_t ticks;
+	uint16_t judge_short_ticks;
+	uint16_t judge_long_ticks;
 	uint8_t  repeat : 4;
 	uint8_t  event : 4;
 	uint8_t  state : 3;
@@ -50,6 +52,8 @@ extern "C" {
 
 void button_init(struct Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_level, uint8_t button_id);
 void button_attach(struct Button* handle, PressEvent event, BtnCallback cb);
+void button_judge_short_ticks_attach(struct Button* handle, uint16_t ticks);
+void button_judge_long_ticks_attach(struct Button* handle, uint16_t ticks);
 PressEvent get_button_event(struct Button* handle);
 int  button_start(struct Button* handle);
 void button_stop(struct Button* handle);
