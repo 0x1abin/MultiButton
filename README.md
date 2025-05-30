@@ -96,12 +96,12 @@ uint8_t read_button_GPIO(uint8_t button_id)
 			break;
 	}
 }
-void BTN1_PRESS_DOWN_Handler(void* btn)
+void BTN1_PRESS_DOWN_Handler(Button *btn)
 {
 	//do something...
 }
 
-void BTN1_PRESS_UP_Handler(void* btn)
+void BTN1_PRESS_UP_Handler(Button *btn)
 {
 	//do something...
 }
