@@ -16,7 +16,9 @@
 #define LONG_TICKS        (1000 /TICKS_INTERVAL)
 
 
-typedef void (*BtnCallback)(void*);
+typedef struct Button Button;
+
+typedef void (*BtnCallback)(Button*);
 
 typedef enum {
 	PRESS_DOWN = 0,
