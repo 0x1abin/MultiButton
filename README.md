@@ -1,4 +1,4 @@
-# MultiButton Library (优化版)
+# MultiButton
 
 一个高效、灵活的多按键状态机库，支持多种按键事件检测。
 
