@@ -193,7 +193,7 @@ button_init(&btn1, read_button_gpio, 0, 1);
 
 ### 5. 注册事件回调
 ```c
-void btn1_single_click_handler(void* btn)
+void btn1_single_click_handler(Button* btn)
 {
     printf("Button 1: Single Click\n");
 }
