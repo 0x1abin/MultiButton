@@ -1,1 +1,4 @@
 build/
+cmake_build/
+CMakeCache.txt
+CMakeFiles/

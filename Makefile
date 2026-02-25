@@ -1,155 +1,142 @@
-# MultiButton Library Makefile
-# 支持编译库文件和示例程序
+# MultiButton Library – Makefile
+# Build static/shared library and example programs.
 
-# Compiler and tools
-CC = gcc
-AR = ar
-RM = rm -f
-MKDIR = mkdir -p
+# ── Toolchain ────────────────────────────────────────────────────────────────
+CC      = gcc
+AR      = ar
+RM      = rm -f
+MKDIR   = mkdir -p
 
-# Project directories
-SRC_DIR = .
+# ── Project layout ───────────────────────────────────────────────────────────
+INC_DIR      = include
+SRC_DIR      = src
 EXAMPLES_DIR = examples
-BUILD_DIR = build
-LIB_DIR = $(BUILD_DIR)/lib
-BIN_DIR = $(BUILD_DIR)/bin
-OBJ_DIR = $(BUILD_DIR)/obj
+BUILD_DIR    = build
+LIB_DIR      = $(BUILD_DIR)/lib
+BIN_DIR      = $(BUILD_DIR)/bin
+OBJ_DIR      = $(BUILD_DIR)/obj
 
-# Compiler flags
-CFLAGS = -Wall -Wextra -std=c99 -O2 -g
-INCLUDES = -I$(SRC_DIR)
-LDFLAGS = 
-LIBS = 
+# ── Compiler / linker flags ──────────────────────────────────────────────────
+CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -O2 -g
+INCLUDES = -I$(INC_DIR)
 
-# Source files
-LIB_SOURCES = multi_button.c
-LIB_OBJECTS = $(addprefix $(OBJ_DIR)/, $(LIB_SOURCES:.c=.o))
+# Optional: user-supplied config override, e.g.
+#   make EXTRA_CFLAGS='-DBTN_USER_CFG_FILE=\"my_cfg.h\"'
+CFLAGS += $(EXTRA_CFLAGS)
 
-# Library name
-LIB_NAME = libmultibutton
+# ── Library sources ──────────────────────────────────────────────────────────
+LIB_SRCS = $(SRC_DIR)/multi_button.c
+LIB_OBJS = $(OBJ_DIR)/multi_button.o
+
+LIB_NAME   = libmultibutton
 STATIC_LIB = $(LIB_DIR)/$(LIB_NAME).a
 SHARED_LIB = $(LIB_DIR)/$(LIB_NAME).so
 
-# Example programs
+# ── Example programs ─────────────────────────────────────────────────────────
 EXAMPLES = basic_example advanced_example poll_example
 
-# Default target
+# ── Default target ───────────────────────────────────────────────────────────
+.PHONY: all library shared examples clean install uninstall help info test \
+        $(EXAMPLES)
+
 all: library examples
 
-# Create directories
-$(BUILD_DIR):
-	$(MKDIR) $(BUILD_DIR)
+# ── Directory creation ───────────────────────────────────────────────────────
+$(BUILD_DIR) $(LIB_DIR) $(BIN_DIR) $(OBJ_DIR):
+	$(MKDIR) $@
 
-$(LIB_DIR): $(BUILD_DIR)
-	$(MKDIR) $(LIB_DIR)
-
-$(BIN_DIR): $(BUILD_DIR)
-	$(MKDIR) $(BIN_DIR)
-
-$(OBJ_DIR): $(BUILD_DIR)
-	$(MKDIR) $(OBJ_DIR)
-
-# Build object files
+# ── Object compilation rules ────────────────────────────────────────────────
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(EXAMPLES_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# Build static library
-$(STATIC_LIB): $(LIB_OBJECTS) | $(LIB_DIR)
+# ── Static library ──────────────────────────────────────────────────────────
+$(STATIC_LIB): $(LIB_OBJS) | $(LIB_DIR)
 	$(AR) rcs $@ $^
-	@echo "Static library created: $@"
+	@echo "  AR    $@"
 
-# Build shared library
-$(SHARED_LIB): $(LIB_OBJECTS) | $(LIB_DIR)
-	$(CC) -shared -fPIC $(CFLAGS) $(INCLUDES) $(LIB_SOURCES) -o $@
-	@echo "Shared library created: $@"
-
-# Library target
 library: $(STATIC_LIB)
 
-# Shared library target
+# ── Shared library ──────────────────────────────────────────────────────────
+$(SHARED_LIB): $(LIB_SRCS) | $(LIB_DIR)
+	$(CC) -shared -fPIC $(CFLAGS) $(INCLUDES) $^ -o $@
+	@echo "  SO    $@"
+
 shared: $(SHARED_LIB)
 
-# Example programs
-basic_example: $(BIN_DIR)/basic_example
-$(BIN_DIR)/basic_example: $(OBJ_DIR)/basic_example.o $(STATIC_LIB) | $(BIN_DIR)
-	$(CC) $< -L$(LIB_DIR) -lmultibutton -o $@
-	@echo "Example program created: $@"
+# ── Example programs (each links against the static lib) ────────────────────
+define EXAMPLE_RULE
+$(1): $(BIN_DIR)/$(1)
+$(BIN_DIR)/$(1): $(OBJ_DIR)/$(1).o $(STATIC_LIB) | $(BIN_DIR)
+	$(CC) $$< -L$(LIB_DIR) -lmultibutton -o $$@
+	@echo "  LD    $$@"
+endef
 
-advanced_example: $(BIN_DIR)/advanced_example
-$(BIN_DIR)/advanced_example: $(OBJ_DIR)/advanced_example.o $(STATIC_LIB) | $(BIN_DIR)
-	$(CC) $< -L$(LIB_DIR) -lmultibutton -o $@
-	@echo "Example program created: $@"
+$(foreach ex,$(EXAMPLES),$(eval $(call EXAMPLE_RULE,$(ex))))
 
-poll_example: $(BIN_DIR)/poll_example
-$(BIN_DIR)/poll_example: $(OBJ_DIR)/poll_example.o $(STATIC_LIB) | $(BIN_DIR)
-	$(CC) $< -L$(LIB_DIR) -lmultibutton -o $@
-	@echo "Example program created: $@"
+examples: $(addprefix $(BIN_DIR)/,$(EXAMPLES))
 
-# Build all examples
-examples: $(addprefix $(BIN_DIR)/, $(EXAMPLES))
-
-# Test target
+# ── Test / run ──────────────────────────────────────────────────────────────
 test: examples
-	@echo "Running basic example..."
-	@cd $(BIN_DIR) && ./basic_example
+	@echo "=== Running basic_example ==="
+	@$(BIN_DIR)/basic_example
 
-# Clean build files
+# ── Install / uninstall ─────────────────────────────────────────────────────
+PREFIX ?= /usr/local
+
+install: library
+	install -d $(PREFIX)/lib $(PREFIX)/include
+	install -m 644 $(STATIC_LIB)               $(PREFIX)/lib/
+	install -m 644 $(INC_DIR)/multi_button.h     $(PREFIX)/include/
+	install -m 644 $(INC_DIR)/multi_button_cfg.h $(PREFIX)/include/
+	@echo "Installed to $(PREFIX)"
+
+uninstall:
+	$(RM) $(PREFIX)/lib/$(LIB_NAME).a
+	$(RM) $(PREFIX)/include/multi_button.h
+	$(RM) $(PREFIX)/include/multi_button_cfg.h
+
+# ── Clean ───────────────────────────────────────────────────────────────────
 clean:
 	$(RM) -r $(BUILD_DIR)
-	@echo "Build directory cleaned"
+	@echo "Build directory cleaned."
 
-# Install library (optional)
-install: library
-	@echo "Installing library to /usr/local/lib..."
-	sudo cp $(STATIC_LIB) /usr/local/lib/
-	sudo cp multi_button.h /usr/local/include/
-	sudo ldconfig
-
-# Uninstall library
-uninstall:
-	sudo $(RM) /usr/local/lib/$(LIB_NAME).a
-	sudo $(RM) /usr/local/include/multi_button.h
-
-# Show help
+# ── Help ────────────────────────────────────────────────────────────────────
 help:
 	@echo "MultiButton Library Build System"
 	@echo ""
-	@echo "Available targets:"
-	@echo "  all          - Build library and examples (default)"
-	@echo "  library      - Build static library only"
-	@echo "  shared       - Build shared library"
-	@echo "  examples     - Build all examples"
-	@echo "  basic_example     - Build basic example"
-	@echo "  advanced_example  - Build advanced example"
-	@echo "  poll_example      - Build poll example"
-	@echo "  test         - Build and run basic test"
-	@echo "  clean        - Remove build directory"
-	@echo "  install      - Install library to system"
-	@echo "  uninstall    - Remove library from system"
-	@echo "  help         - Show this help message"
+	@echo "Targets:"
+	@echo "  all              Build library + examples (default)"
+	@echo "  library          Build static library only"
+	@echo "  shared           Build shared library"
+	@echo "  examples         Build all example programs"
+	@echo "  basic_example    Build basic example"
+	@echo "  advanced_example Build advanced example"
+	@echo "  poll_example     Build polling example"
+	@echo "  test             Build and run basic_example"
+	@echo "  clean            Remove build directory"
+	@echo "  install          Install to PREFIX (default /usr/local)"
+	@echo "  uninstall        Remove installed files"
+	@echo "  help             Show this message"
 	@echo ""
-	@echo "Build configuration:"
-	@echo "  CC           = $(CC)"
-	@echo "  CFLAGS       = $(CFLAGS)"
-	@echo "  BUILD_DIR    = $(BUILD_DIR)"
+	@echo "Variables:"
+	@echo "  EXTRA_CFLAGS     Extra compiler flags"
+	@echo "  PREFIX           Install prefix (default /usr/local)"
+	@echo ""
+	@echo "Example – custom config:"
+	@echo "  make EXTRA_CFLAGS='-DBTN_USER_CFG_FILE=\"my_cfg.h\"'"
 
-# Print build info
 info:
-	@echo "Project: MultiButton Library"
-	@echo "Sources: $(LIB_SOURCES)"
-	@echo "Examples: $(EXAMPLES)"
-	@echo "Build directory: $(BUILD_DIR)"
-	@echo "Compiler: $(CC)"
-	@echo "Flags: $(CFLAGS)"
+	@echo "CC       = $(CC)"
+	@echo "CFLAGS   = $(CFLAGS)"
+	@echo "INCLUDES = $(INCLUDES)"
+	@echo "LIB_SRCS = $(LIB_SRCS)"
+	@echo "EXAMPLES = $(EXAMPLES)"
 
-# Phony targets
-.PHONY: all library shared examples clean install uninstall help info test basic_example advanced_example poll_example
-
-# Dependencies
-$(OBJ_DIR)/multi_button.o: multi_button.c multi_button.h
-$(OBJ_DIR)/basic_example.o: $(EXAMPLES_DIR)/basic_example.c multi_button.h
-$(OBJ_DIR)/advanced_example.o: $(EXAMPLES_DIR)/advanced_example.c multi_button.h
-$(OBJ_DIR)/poll_example.o: $(EXAMPLES_DIR)/poll_example.c multi_button.h 
+# ── Explicit header dependencies ────────────────────────────────────────────
+$(OBJ_DIR)/multi_button.o:    $(SRC_DIR)/multi_button.c     $(INC_DIR)/multi_button.h $(INC_DIR)/multi_button_cfg.h
+$(OBJ_DIR)/basic_example.o:   $(EXAMPLES_DIR)/basic_example.c   $(INC_DIR)/multi_button.h $(INC_DIR)/multi_button_cfg.h
+$(OBJ_DIR)/advanced_example.o:$(EXAMPLES_DIR)/advanced_example.c $(INC_DIR)/multi_button.h $(INC_DIR)/multi_button_cfg.h
+$(OBJ_DIR)/poll_example.o:    $(EXAMPLES_DIR)/poll_example.c    $(INC_DIR)/multi_button.h $(INC_DIR)/multi_button_cfg.h
