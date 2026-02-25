@@ -1,340 +1,246 @@
 # MultiButton
 
-一个高效、灵活的多按键状态机库，支持多种按键事件检测。
+轻量级多按键状态机库，适用于各类嵌入式系统（STM32 / ESP32 / Arduino / bare-metal / RTOS）。
 
-## 功能特性
+## 特性
 
-- ✅ **多种按键事件**: 按下、抬起、单击、双击、长按开始、长按保持、重复按下
-- ✅ **硬件去抖**: 内置数字滤波，消除按键抖动
-- ✅ **状态机驱动**: 清晰的状态转换逻辑，可靠性高
-- ✅ **多按键支持**: 支持无限数量的按键实例
-- ✅ **回调机制**: 灵活的事件回调函数注册
-- ✅ **内存优化**: 紧凑的数据结构，低内存占用
-- ✅ **配置灵活**: 可自定义时间参数和功能选项
-- ✅ **参数验证**: 完善的错误检查和边界条件处理
+- **4 状态有限状态机** — IDLE → PRESSED → RELEASED → LONG_HOLD，状态转换清晰可追踪
+- **硬件消抖** — 可配置深度的数字滤波器（默认 3 × 5 ms = 15 ms）
+- **多事件检测** — 按下、抬起、单击、双击、N 连击、长按开始、长按保持
+- **双模式** — 回调模式 + 轮询模式，按需选用
+- **用户上下文** — `user_data` 指针，便于面向对象风格的使用
+- **编译期可配置** — `multi_button_cfg.h` 提供 `#ifndef` 守卫，支持零修改覆盖
+- **零动态内存** — 按键实例由调用者静态分配，ISR 安全
+- **单按键独立处理** — `button_tick_single()` 支持用户自行管理按键集合
+- **双构建系统** — 同时提供 Makefile 与 CMakeLists.txt
 
-## 优化改进
+## 目录结构
 
-### 1. 代码结构优化
-- 更清晰的枚举命名 (`BTN_PRESS_DOWN` vs `PRESS_DOWN`)
-- 增加状态机状态枚举，提高可读性
-- 统一的函数命名规范
-- 更好的代码注释和文档
+```
+MultiButton/
+├── include/
+│   ├── multi_button.h          # 公共 API 头文件
+│   └── multi_button_cfg.h      # 编译期配置（可覆盖）
+├── src/
+│   └── multi_button.c          # 状态机实现
+├── examples/
+│   ├── basic_example.c         # 基础示例
+│   ├── advanced_example.c      # 高级示例（user_data / 动态回调）
+│   └── poll_example.c          # 轮询模式示例
+├── CMakeLists.txt              # CMake 构建
+├── Makefile                    # GNU Make 构建
+└── README.md
+```
 
-### 2. 功能增强
-- 新增 `button_detach()` - 动态移除事件回调
-- 新增 `button_reset()` - 重置按键状态
-- 新增 `button_is_pressed()` - 查询当前按键状态
-- 新增 `button_get_repeat_count()` - 获取重复按下次数
-- 改进的 `button_get_event()` 函数
+## 编译
 
-### 3. 安全性提升
-- 完善的参数验证
-- 空指针检查
-- 数组越界保护
-- 更好的错误返回值
-
-### 4. 性能优化
-- 内联函数优化 GPIO 读取
-- 更安全的宏定义
-- 减少不必要的计算
-- 优化的状态机逻辑
-
-### 5. 可维护性
-- 清晰的状态转换
-- 模块化设计
-- 配置文件分离
-- 详细的使用示例
-
-## 编译和构建
-
-### 使用 Makefile (推荐)
+### Make
 
 ```bash
-# 编译所有内容 (库 + 示例)
-make
-
-# 只编译库
-make library
-
-# 只编译示例
-make examples
-
-# 编译特定示例
-make basic_example
-make advanced_example
-make poll_example
-
-# 运行测试
-make test
-
-# 清理构建文件
-make clean
-
-# 查看帮助
-make help
+make                # 编译库 + 全部示例
+make library        # 仅编译静态库
+make shared         # 编译动态库
+make examples       # 仅编译示例
+make test           # 编译并运行 basic_example
+make clean          # 清理
+make help           # 查看全部目标
 ```
 
-### 使用构建脚本
+### CMake
 
 ```bash
-# 使脚本可执行
-chmod +x build.sh
-
-# 编译所有内容
-./build.sh
-
-# 只编译库
-./build.sh library
-
-# 编译特定示例
-./build.sh basic_example
-
-# 查看帮助
-./build.sh help
+cmake -B build && cmake --build build
+# 运行示例
+./build/basic_example
 ```
 
-### 构建输出
+### 自定义配置
 
-编译完成后，文件结构如下：
-
-```
-build/
-├── lib/
-│   └── libmultibutton.a    # 静态库
-├── bin/
-│   ├── basic_example       # 基础示例
-│   ├── advanced_example    # 高级示例
-│   └── poll_example        # 轮询示例
-└── obj/                    # 目标文件
-```
-
-## 示例程序
-
-### 1. 基础示例 (`examples/basic_example.c`)
-
-演示基本的按键事件处理：
+在不修改库源码的情况下覆盖默认参数：
 
 ```bash
-./build/bin/basic_example
+# Make
+make EXTRA_CFLAGS='-DBTN_USER_CFG_FILE=\"my_cfg.h\"'
+
+# CMake
+cmake -B build -DBTN_USER_CFG_FILE='\"my_cfg.h\"'
 ```
 
-功能：
-- 单击、双击、长按检测
-- 重复按下计数
-- 按键状态查询
-- 自动化演示序列
-
-### 2. 高级示例 (`examples/advanced_example.c`)
-
-演示高级功能和动态管理：
+或在编译命令中直接覆盖单个宏：
 
 ```bash
-# 运行完整演示
-./build/bin/advanced_example
-
-# 详细输出模式
-./build/bin/advanced_example -v
-
-# 安静模式 (手动测试)
-./build/bin/advanced_example -q
+make EXTRA_CFLAGS='-DBTN_LONG_TICKS=400'
 ```
-
-功能：
-- 多按键管理
-- 动态回调函数添加/移除
-- 配置按键
-- 运行时状态监控
-
-### 3. 轮询示例 (`examples/poll_example.c`)
-
-演示轮询模式使用：
-
-```bash
-./build/bin/poll_example
-```
-
-功能：
-- 无回调函数的轮询模式
-- 事件状态查询
-- 主循环集成示例
-- 预定义按键模式演示
 
 ## 快速开始
 
 ### 1. 包含头文件
+
 ```c
 #include "multi_button.h"
 ```
 
-### 2. 定义按键实例
-```c
-static Button btn1;
-```
+### 2. 实现 GPIO 读取函数
 
-### 3. 实现 GPIO 读取函数
 ```c
 uint8_t read_button_gpio(uint8_t button_id)
 {
     switch (button_id) {
-        case 1:
-            return HAL_GPIO_ReadPin(BUTTON1_GPIO_Port, BUTTON1_Pin);
-        default:
-            return 0;
+    case 1: return HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin);
+    default: return 0;
     }
 }
 ```
 
-### 4. 初始化按键
+### 3. 定义按键实例并初始化
+
 ```c
-// 初始化按键 (active_level: 0=低电平有效, 1=高电平有效)
-button_init(&btn1, read_button_gpio, 0, 1);
+static button_t btn1;
+
+button_init(&btn1, read_button_gpio, 0, 1);   // active_level=0 低电平有效
 ```
 
-### 5. 注册事件回调
+### 4. 注册事件回调
+
 ```c
-void btn1_single_click_handler(void* btn)
+void on_single_click(button_t *btn)
 {
-    printf("Button 1: Single Click\n");
+    const char *name = (const char *)button_get_user_data(btn);
+    printf("%s: single click\n", name);
 }
 
-button_attach(&btn1, BTN_SINGLE_CLICK, btn1_single_click_handler);
+button_set_user_data(&btn1, "BTN1");
+button_attach(&btn1, BTN_SINGLE_CLICK, on_single_click);
 ```
 
-### 6. 启动按键处理
+### 5. 启动 & 周期调用
+
 ```c
 button_start(&btn1);
+
+// 在 5 ms 定时器中断中：
+void TIM_IRQHandler(void) {
+    button_tick();
+}
 ```
 
-### 7. 定时调用处理函数
+### 6. 轮询模式（可选）
+
 ```c
-// 在 5ms 定时器中断中调用
-void timer_5ms_interrupt_handler(void)
-{
-    button_ticks();
-}
+// 不注册回调，直接在主循环中查询
+button_event_t ev = button_get_event(&btn1);
+if (ev == BTN_SINGLE_CLICK) { /* ... */ }
 ```
 
 ## API 参考
 
-### 按键事件类型
-```c
-typedef enum {
-    BTN_PRESS_DOWN = 0,     // 按键按下
-    BTN_PRESS_UP,           // 按键抬起
-    BTN_PRESS_REPEAT,       // 重复按下检测
-    BTN_SINGLE_CLICK,       // 单击完成
-    BTN_DOUBLE_CLICK,       // 双击完成
-    BTN_LONG_PRESS_START,   // 长按开始
-    BTN_LONG_PRESS_HOLD,    // 长按保持
-    BTN_NONE_PRESS          // 无事件
-} ButtonEvent;
-```
+### 事件类型 `button_event_t`
+
+| 枚举值 | 说明 |
+|---|---|
+| `BTN_PRESS_DOWN` | 按键按下（消抖后） |
+| `BTN_PRESS_UP` | 按键抬起 |
+| `BTN_PRESS_REPEAT` | 连击序列中检测到重复按下 |
+| `BTN_SINGLE_CLICK` | 单击完成（超时确认） |
+| `BTN_DOUBLE_CLICK` | 双击完成（超时确认） |
+| `BTN_LONG_PRESS_START` | 达到长按阈值 |
+| `BTN_LONG_PRESS_HOLD` | 长按保持中（每个 tick 触发） |
+| `BTN_NONE_PRESS` | 无事件 |
+
+### 状态类型 `button_state_t`
+
+| 枚举值 | 说明 |
+|---|---|
+| `BTN_STATE_IDLE` | 空闲 |
+| `BTN_STATE_PRESSED` | 按下计时中 |
+| `BTN_STATE_RELEASED` | 已释放，等待重按或超时 |
+| `BTN_STATE_LONG_HOLD` | 长按保持 |
 
 ### 核心函数
 
-#### `void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_level, uint8_t button_id)`
-**功能**: Initialize button instance  
-**参数**: 
-- `handle`: 按键句柄
-- `pin_level`: GPIO 读取函数指针
-- `active_level`: 有效电平 (0 或 1)
-- `button_id`: 按键 ID
-
-#### `void button_attach(Button* handle, ButtonEvent event, BtnCallback cb)`
-**功能**: Attach event callback function  
-**参数**:
-- `handle`: 按键句柄
-- `event`: 事件类型
-- `cb`: 回调函数
-
-#### `void button_detach(Button* handle, ButtonEvent event)`
-**功能**: Detach event callback function  
-**参数**:
-- `handle`: 按键句柄  
-- `event`: 事件类型
-
-#### `int button_start(Button* handle)`
-**功能**: Start button processing  
-**返回值**: 0=成功, -1=已存在, -2=参数错误
-
-#### `void button_stop(Button* handle)`
-**功能**: Stop button processing
-
-#### `void button_ticks(void)`
-**功能**: Background processing function (call every 5ms)
-
-### 工具函数
-
-#### `ButtonEvent button_get_event(Button* handle)`
-**功能**: Get current button event
-
-#### `uint8_t button_get_repeat_count(Button* handle)`
-**功能**: Get repeat press count
-
-#### `void button_reset(Button* handle)`
-**功能**: Reset button state to idle
-
-#### `int button_is_pressed(Button* handle)`
-**功能**: Check if button is currently pressed  
-**返回值**: 1=按下, 0=未按下, -1=错误
+| 函数 | 说明 |
+|---|---|
+| `button_init(btn, read_fn, active_level, id)` | 初始化按键实例 |
+| `button_set_user_data(btn, ptr)` | 设置用户上下文指针 |
+| `button_get_user_data(btn)` | 获取用户上下文指针 |
+| `button_attach(btn, event, cb)` | 注册事件回调 |
+| `button_detach(btn, event)` | 移除事件回调 |
+| `button_start(btn)` | 加入全局 tick 链表（返回 0/-1/-2） |
+| `button_stop(btn)` | 从全局 tick 链表移除 |
+| `button_tick()` | 处理所有已注册按键（周期调用） |
+| `button_tick_single(btn)` | 处理单个按键（自管理模式） |
+| `button_get_event(btn)` | 获取当前事件（轮询用） |
+| `button_get_state(btn)` | 获取 FSM 状态（调试用） |
+| `button_get_repeat_count(btn)` | 获取连击计数 |
+| `button_get_id(btn)` | 获取按键 ID |
+| `button_is_pressed(btn)` | 查询当前是否处于按下状态 |
+| `button_reset(btn)` | 重置为 IDLE 状态 |
 
 ## 配置选项
 
-在 `multi_button_config.h` 中可以自定义以下参数:
+在 `include/multi_button_cfg.h` 中定义，均可通过 `#define` 在编译前覆盖：
 
-```c
-#define TICKS_INTERVAL          5       // 定时器中断间隔 (ms)
-#define DEBOUNCE_TIME_MS        15      // 去抖时间 (ms)
-#define SHORT_PRESS_TIME_MS     300     // 短按时间阈值 (ms)
-#define LONG_PRESS_TIME_MS      1000    // 长按时间阈值 (ms)
-#define PRESS_REPEAT_MAX_NUM    15      // 最大重复计数
-```
-
-## 使用注意事项
-
-1. **定时器设置**: 必须配置 5ms 定时器中断，在中断中调用 `button_ticks()`
-2. **GPIO 配置**: 按键引脚需配置为输入模式，根据需要启用上拉或下拉电阻
-3. **回调函数**: 回调函数应尽量简短，避免长时间阻塞
-4. **内存管理**: 按键实例可以是全局变量或动态分配
-5. **多按键**: 每个物理按键需要独立的 Button 实例和唯一的 button_id
+| 宏 | 默认值 | 说明 |
+|---|---|---|
+| `BTN_TICKS_INTERVAL` | 5 | tick 周期 (ms) |
+| `BTN_DEBOUNCE_TICKS` | 3 | 消抖深度 (max 7) |
+| `BTN_SHORT_TICKS` | 60 | 短按 / 多击窗口 (ticks) |
+| `BTN_LONG_TICKS` | 200 | 长按阈值 (ticks) |
+| `BTN_REPEAT_MAX` | 15 | 最大连击计数 (max 15) |
 
 ## 状态机说明
 
 ```
-[IDLE] --按下--> [PRESS] --长按--> [LONG_HOLD]
-   ^                |                    |
-   |             抬起|                 抬起|
-   |                v                    |
-   |          [RELEASE] <----------------+
-   |          |       ^
-   |       超时|       |快速按下
-   |          |       |
-   +----------+   [REPEAT]
+                    ┌──────────┐
+          press     │          │  release
+    ┌───────────────►  PRESSED ├───────────────┐
+    │               │          │               │
+    │               └────┬─────┘               ▼
+┌───┴────┐               │ held > LONG    ┌──────────┐
+│  IDLE  │               │                │ RELEASED │
+└───▲────┘               ▼                └──┬───┬───┘
+    │          ┌───────────────┐   re-press  │   │
+    │  release │   LONG_HOLD  │◄─────────────┘   │ timeout
+    ├──────────┤  (hold events)│    ──► PRESSED   │
+    │          └───────────────┘                  │
+    │                                             │
+    └──── single/double click ────────────────────┘
 ```
 
-## 项目结构
+**4 状态，转换规则：**
 
-```
-MultiButton/
-├── multi_button.h          # 主头文件
-├── multi_button.c          # 主源文件
-├── Makefile               # 构建脚本
-├── build.sh               # 备用构建脚本
-├── examples/              # 示例目录
-│   ├── basic_example.c    # 基础示例
-│   ├── advanced_example.c # 高级示例
-│   └── poll_example.c     # 轮询示例
-├── build/                 # 构建输出目录
-│   ├── lib/              # 库文件
-│   ├── bin/              # 可执行文件
-│   └── obj/              # 目标文件
-└── README.md             # 说明文档
-```
+| 当前状态 | 条件 | 动作 | 下一状态 |
+|---|---|---|---|
+| IDLE | 检测到按下 | 触发 PRESS_DOWN，repeat=1 | PRESSED |
+| PRESSED | 检测到释放 | 触发 PRESS_UP | RELEASED |
+| PRESSED | ticks > LONG | 触发 LONG_PRESS_START | LONG_HOLD |
+| RELEASED | 检测到重按 | 触发 PRESS_DOWN + REPEAT，repeat++ | PRESSED |
+| RELEASED | ticks > SHORT | 触发 SINGLE/DOUBLE_CLICK | IDLE |
+| LONG_HOLD | 仍然按住 | 触发 LONG_PRESS_HOLD | LONG_HOLD |
+| LONG_HOLD | 检测到释放 | 触发 PRESS_UP | IDLE |
+
+## 与 v1.x 的差异
+
+| 项目 | v1.x | v2.0 |
+|---|---|---|
+| 状态机 | 5 状态 (含 REPEAT) | 4 状态，消除歧义转换 |
+| tick 计数器 | `uint16_t` (溢出风险) | `uint32_t` (安全) |
+| 用户上下文 | 无 | `user_data` 指针 |
+| 配置方式 | 修改头文件宏 | 独立 cfg.h + 编译期覆盖 |
+| 单按键处理 | 仅全局 tick | 额外提供 `button_tick_single()` |
+| 类型命名 | `Button` / `ButtonEvent` | `button_t` / `button_event_t` (C 风格) |
+| 构建系统 | Makefile | Makefile + CMake |
+| 文件结构 | 扁平 | `include/` + `src/` 分离 |
+| const 正确性 | 无 | 查询函数接受 `const` 指针 |
+| 版本信息 | 无 | `MULTI_BUTTON_VERSION_*` 宏 |
 
 ## 兼容性
 
 - C99 标准
-- 适用于各种微控制器平台 (STM32, Arduino, ESP32, etc.)
-- 支持裸机和 RTOS 环境
-- 内存占用小，适合资源受限的系统
+- 适用于各类微控制器 (STM32 / ESP32 / Arduino / NRF / CH32 等)
+- 支持裸机 (bare-metal) 和 RTOS 环境
+- 内存占用极小，适合资源受限系统
+
+## 许可证
+
+MIT License — 详见 [LICENSE](LICENSE) 文件。
