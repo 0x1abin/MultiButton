@@ -5,8 +5,8 @@
 
 #include "multi_button.h"
 
-// Macro for callback execution with null check
-#define EVENT_CB(ev)   do { if(handle->cb[ev]) handle->cb[ev](handle); } while(0)
+// Macro for callback execution with null check, passes user_data
+#define EVENT_CB(ev)   do { if(handle->cb[ev]) handle->cb[ev](handle, handle->user_data); } while(0)
 
 // Button handle list head
 static Button* head_handle = NULL;
@@ -26,7 +26,7 @@ static inline uint8_t button_read_level(Button* handle);
 void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_level, uint8_t button_id)
 {
 	if (!handle || !pin_level) return;  // parameter validation
-	
+
 	memset(handle, 0, sizeof(Button));
 	handle->event = (uint8_t)BTN_NONE_PRESS;
 	handle->hal_button_level = pin_level;
@@ -34,6 +34,7 @@ void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_le
 	handle->active_level = active_level;
 	handle->button_id = button_id;
 	handle->state = BTN_STATE_IDLE;
+	// user_data is zeroed by memset
 }
 
 /**
@@ -41,12 +42,14 @@ void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_le
   * @param  handle: the button handle struct
   * @param  event: trigger event type
   * @param  cb: callback function
+  * @param  user_data: user context pointer passed to callback (stored per-button)
   * @retval None
   */
-void button_attach(Button* handle, ButtonEvent event, BtnCallback cb)
+void button_attach(Button* handle, ButtonEvent event, BtnCallback cb, void* user_data)
 {
 	if (!handle || event >= BTN_EVENT_COUNT) return;  // parameter validation
 	handle->cb[event] = cb;
+	handle->user_data = user_data;
 }
 
 /**
@@ -128,9 +131,11 @@ static void button_handler(Button* handle)
 {
 	uint8_t read_gpio_level = button_read_level(handle);
 
-	// Increment ticks counter when not in idle state
+	// Increment ticks counter when not in idle state (with saturation)
 	if (handle->state > BTN_STATE_IDLE) {
-		handle->ticks++;
+		if (handle->ticks < UINT16_MAX) {
+			handle->ticks++;
+		}
 	}
 
 	/*------------Button debounce handling---------------*/
@@ -247,7 +252,7 @@ static void button_handler(Button* handle)
 int button_start(Button* handle)
 {
 	if (!handle) return -2;  // invalid parameter
-	
+
 	MULTIBUTTON_LOCK();
 	Button* target = head_handle;
 	while (target) {
@@ -272,7 +277,7 @@ int button_start(Button* handle)
 void button_stop(Button* handle)
 {
 	if (!handle) return;  // parameter validation
-	
+
 	MULTIBUTTON_LOCK();
 	Button** curr;
 	for (curr = &head_handle; *curr; ) {
@@ -291,15 +296,26 @@ void button_stop(Button* handle)
 
 /**
   * @brief  Background ticks, timer repeat invoking interval 5ms
+  *         Callbacks are executed outside the lock so they may safely
+  *         call button_start()/button_stop() without deadlock risk.
   * @param  None
   * @retval None
   */
 void button_ticks(void)
 {
-	MULTIBUTTON_LOCK();
 	Button* target;
-	for (target = head_handle; target; target = target->next) {
-		button_handler(target);
-	}
+	Button* next;
+
+	MULTIBUTTON_LOCK();
+	target = head_handle;
 	MULTIBUTTON_UNLOCK();
+
+	while (target) {
+		MULTIBUTTON_LOCK();
+		next = target->next;
+		MULTIBUTTON_UNLOCK();
+
+		button_handler(target);
+		target = next;
+	}
 }

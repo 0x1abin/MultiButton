@@ -12,7 +12,7 @@
 // Version information
 #define MULTIBUTTON_VERSION_MAJOR 1
 #define MULTIBUTTON_VERSION_MINOR 1
-#define MULTIBUTTON_VERSION_PATCH 0
+#define MULTIBUTTON_VERSION_PATCH 1
 
 // Configuration constants - can be modified according to your needs
 #define TICKS_INTERVAL          5    // ms - timer interrupt interval
@@ -30,7 +30,7 @@
 typedef struct _Button Button;
 
 // Button callback function type
-typedef void (*BtnCallback)(Button* btn_handle);
+typedef void (*BtnCallback)(Button* btn_handle, void* user_data);
 
 // Button event types
 typedef enum {
@@ -66,12 +66,17 @@ struct _Button {
 	uint8_t  button_id;                 // button identifier
 	uint8_t  (*hal_button_level)(uint8_t button_id);  // HAL function to read GPIO
 	BtnCallback cb[BTN_EVENT_COUNT];    // callback function array
+	void*    user_data;                 // user context pointer passed to callbacks
 	Button* next;                       // next button in linked list
 };
 
 // Optional thread-safety support for RTOS environments.
 // Define MULTIBUTTON_THREAD_SAFE and provide MULTIBUTTON_LOCK()/MULTIBUTTON_UNLOCK()
 // macros before including this header to enable thread-safe list operations.
+//
+// NOTE: Callbacks are executed OUTSIDE the lock, so a regular (non-recursive) mutex
+// is safe. Callbacks may freely call button_stop()/button_start() without deadlock.
+//
 // Example:
 //   #define MULTIBUTTON_THREAD_SAFE
 //   #define MULTIBUTTON_LOCK()   osMutexAcquire(btn_mutex, osWaitForever)
@@ -92,7 +97,7 @@ extern "C" {
 
 // Public API functions
 void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_level, uint8_t button_id);
-void button_attach(Button* handle, ButtonEvent event, BtnCallback cb);
+void button_attach(Button* handle, ButtonEvent event, BtnCallback cb, void* user_data);
 void button_detach(Button* handle, ButtonEvent event);
 ButtonEvent button_get_event(Button* handle);
 int  button_start(Button* handle);
