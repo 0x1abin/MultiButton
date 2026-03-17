@@ -54,7 +54,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(EXAMPLES_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CFLAGS) -D_DEFAULT_SOURCE $(INCLUDES) -c $< -o $@
 
 # Build static library
 $(STATIC_LIB): $(LIB_OBJECTS) | $(LIB_DIR)
