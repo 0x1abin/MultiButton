@@ -25,7 +25,7 @@ static int verbose_mode = 0;
 void signal_handler(int sig)
 {
     if (sig == SIGINT) {
-        printf("\n🛑 Received SIGINT, cleaning up...\n");
+        printf("\nReceived SIGINT, cleaning up...\n");
         running = 0;
     }
 }
@@ -43,13 +43,12 @@ uint8_t read_button_gpio(uint8_t button_id)
 void generic_event_handler(Button* btn, const char* event_name)
 {
     if (verbose_mode) {
-        printf("🔘 Button %d: %s (repeat: %d, pressed: %s)\n", 
-               btn->button_id, 
-               event_name,
+        printf("[BTN%d] %s (repeat: %d, pressed: %s)\n", 
+               btn->button_id, event_name,
                button_get_repeat_count(btn),
                button_is_pressed(btn) ? "Yes" : "No");
     } else {
-        printf("🔘 Button %d: %s\n", btn->button_id, event_name);
+        printf("[BTN%d] %s\n", btn->button_id, event_name);
     }
 }
 
@@ -67,25 +66,25 @@ void on_config_button_click(Button* btn)
 {
     static int config_state = 0;
     
-    printf("⚙️ Config Button %d clicked!\n", btn->button_id);
+    printf("[CFG] Config Button %d clicked!\n", btn->button_id);
     
     switch (config_state) {
         case 0:
             verbose_mode = !verbose_mode;
-            printf("📝 Verbose mode: %s\n", verbose_mode ? "ON" : "OFF");
+            printf("  Verbose mode: %s\n", verbose_mode ? "ON" : "OFF");
             break;
         case 1:
             demo_mode = !demo_mode;
-            printf("🎭 Demo mode: %s\n", demo_mode ? "ON" : "OFF");
+            printf("  Demo mode: %s\n", demo_mode ? "ON" : "OFF");
             break;
         case 2:
-            printf("🔄 Resetting all buttons...\n");
+            printf("  Resetting all buttons...\n");
             for (int i = 0; i < MAX_BUTTONS; i++) {
                 button_reset(&buttons[i]);
             }
             break;
         case 3:
-            printf("👋 Stopping demo...\n");
+            printf("  Stopping demo...\n");
             running = 0;
             break;
     }
@@ -119,27 +118,27 @@ void init_button(int index, uint8_t button_id, int enable_all_events)
 // Initialize all buttons
 void buttons_init(void)
 {
-    printf("🔧 Initializing %d buttons...\n", MAX_BUTTONS);
+    printf("Initializing %d buttons...\n", MAX_BUTTONS);
     
     // Button 1: Full feature set
     init_button(0, 1, 1);
-    printf("  ✅ Button 1: Full feature set\n");
+    printf("  [OK] Button 1: Full feature set\n");
     
     // Button 2: Essential events only
     init_button(1, 2, 0);
-    printf("  ✅ Button 2: Essential events only\n");
+    printf("  [OK] Button 2: Essential events only\n");
     
     // Button 3: Configuration button with special handler
     init_button(2, 3, 0);
     button_detach(&buttons[2], BTN_SINGLE_CLICK);
     button_attach(&buttons[2], BTN_SINGLE_CLICK, on_config_button_click);
-    printf("  ✅ Button 3: Configuration button\n");
+    printf("  [OK] Button 3: Configuration button\n");
     
     // Button 4: Dynamic configuration demo
     init_button(3, 4, 0);
-    printf("  ✅ Button 4: Dynamic configuration demo\n");
+    printf("  [OK] Button 4: Dynamic configuration demo\n");
     
-    printf("🎯 All buttons initialized successfully!\n\n");
+    printf("All buttons initialized OK\n\n");
 }
 
 // Simulate button press
@@ -148,7 +147,7 @@ void simulate_button_press(int button_id, int duration_ms)
     if (button_id < 1 || button_id > MAX_BUTTONS) return;
     
     if (verbose_mode) {
-        printf("📱 Simulating button %d press (%d ms)\n", button_id, duration_ms);
+        printf("--- Simulating button %d press (%d ms) ---\n", button_id, duration_ms);
     }
     
     button_states[button_id - 1] = 1;
@@ -169,7 +168,7 @@ void simulate_button_press(int button_id, int duration_ms)
 // Dynamic configuration demo
 void dynamic_config_demo(void)
 {
-    printf("\n🔄 Dynamic Configuration Demo\n");
+    printf("\nDynamic Configuration Demo\n");
     printf("=====================================\n");
     
     // Initially button 4 has minimal handlers
@@ -201,7 +200,7 @@ void dynamic_config_demo(void)
 // Interactive demo sequence
 void run_demo_sequence(void)
 {
-    printf("\n🎭 Interactive Demo Sequence\n");
+    printf("\nInteractive Demo Sequence\n");
     printf("=====================================\n");
     
     printf("Demo 1: Single clicks on all buttons\n");
@@ -237,7 +236,7 @@ void run_demo_sequence(void)
 // Print button status
 void print_button_status(void)
 {
-    printf("\n📊 Button Status Report\n");
+    printf("\nButton Status Report\n");
     printf("========================\n");
     for (int i = 0; i < MAX_BUTTONS; i++) {
         printf("Button %d: ", buttons[i].button_id);
@@ -251,7 +250,7 @@ void print_button_status(void)
 // Main function
 int main(int argc, char* argv[])
 {
-    printf("🚀 MultiButton Library Advanced Example\n");
+    printf("MultiButton Library Advanced Example\n");
     printf("==========================================\n");
     
     // Parse command line arguments
@@ -283,11 +282,11 @@ int main(int argc, char* argv[])
         // Print final status
         print_button_status();
         
-        printf("\n✅ Advanced demo completed!\n");
-        printf("💡 Use Ctrl+C to exit, or run with --quiet for manual testing\n");
+        printf("\nAdvanced demo completed!\n");
+        printf("Use Ctrl+C to exit, or run with --quiet for manual testing\n");
     } else {
-        printf("🎮 Manual test mode - buttons are ready for interaction\n");
-        printf("💡 Use Ctrl+C to exit\n");
+        printf("Manual test mode - buttons are ready for interaction\n");
+        printf("Use Ctrl+C to exit\n");
     }
     
     // Keep running until interrupted
@@ -297,12 +296,12 @@ int main(int argc, char* argv[])
     }
     
     // Cleanup
-    printf("\n🧹 Cleaning up...\n");
+    printf("\nCleaning up...\n");
     for (int i = 0; i < MAX_BUTTONS; i++) {
         button_stop(&buttons[i]);
     }
     
-    printf("👋 Advanced example finished!\n");
+    printf("Advanced example finished.\n");
     return 0;
 }
 

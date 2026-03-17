@@ -213,6 +213,8 @@ static void button_handler(Button* handle)
 			}
 		} else if (handle->ticks > SHORT_TICKS) {
 			// Held down too long, treat as normal press
+			handle->ticks = 0;      // reset for fresh long-press timing
+			handle->repeat = 0;     // clear repeat count for new press cycle
 			handle->state = BTN_STATE_PRESS;
 		}
 		break;
@@ -246,14 +248,19 @@ int button_start(Button* handle)
 {
 	if (!handle) return -2;  // invalid parameter
 	
+	MULTIBUTTON_LOCK();
 	Button* target = head_handle;
 	while (target) {
-		if (target == handle) return -1;  // already exist
+		if (target == handle) {
+			MULTIBUTTON_UNLOCK();
+			return -1;  // already exist
+		}
 		target = target->next;
 	}
-	
+
 	handle->next = head_handle;
 	head_handle = handle;
+	MULTIBUTTON_UNLOCK();
 	return 0;
 }
 
@@ -266,17 +273,20 @@ void button_stop(Button* handle)
 {
 	if (!handle) return;  // parameter validation
 	
+	MULTIBUTTON_LOCK();
 	Button** curr;
 	for (curr = &head_handle; *curr; ) {
 		Button* entry = *curr;
 		if (entry == handle) {
 			*curr = entry->next;
 			entry->next = NULL;  // clear next pointer
+			MULTIBUTTON_UNLOCK();
 			return;
 		} else {
 			curr = &entry->next;
 		}
 	}
+	MULTIBUTTON_UNLOCK();
 }
 
 /**
@@ -286,8 +296,10 @@ void button_stop(Button* handle)
   */
 void button_ticks(void)
 {
+	MULTIBUTTON_LOCK();
 	Button* target;
 	for (target = head_handle; target; target = target->next) {
 		button_handler(target);
 	}
+	MULTIBUTTON_UNLOCK();
 }

@@ -44,55 +44,55 @@ uint8_t read_button_gpio(uint8_t button_id)
 void btn1_single_click_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("🔘 Button 1: Single Click\n");
+    printf("[BTN1] Single Click\n");
 }
 
 void btn1_double_click_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("🔘🔘 Button 1: Double Click\n");
+    printf("[BTN1] Double Click\n");
 }
 
 void btn1_long_press_start_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("⏹️ Button 1: Long Press Start\n");
+    printf("[BTN1] Long Press Start\n");
 }
 
 void btn1_long_press_hold_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("⏸️ Button 1: Long Press Hold...\n");
+    printf("[BTN1] Long Press Hold...\n");
 }
 
 void btn1_press_repeat_handler(Button* btn)
 {
-    printf("🔄 Button 1: Press Repeat (count: %d)\n", button_get_repeat_count(btn));
+    printf("[BTN1] Press Repeat (count: %d)\n", button_get_repeat_count(btn));
 }
 
 // Callback functions for button 2
 void btn2_single_click_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("🔵 Button 2: Single Click\n");
+    printf("[BTN2] Single Click\n");
 }
 
 void btn2_double_click_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("🔵🔵 Button 2: Double Click\n");
+    printf("[BTN2] Double Click\n");
 }
 
 void btn2_press_down_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("⬇️ Button 2: Press Down\n");
+    printf("[BTN2] Press Down\n");
 }
 
 void btn2_press_up_handler(Button* btn)
 {
     (void)btn;  // suppress unused parameter warning
-    printf("⬆️ Button 2: Press Up\n");
+    printf("[BTN2] Press Up\n");
 }
 
 // Initialize buttons
@@ -125,7 +125,7 @@ void buttons_init(void)
 // Simulate button press for demonstration
 void simulate_button_press(int button_id, int duration_ms)
 {
-    printf("\n📱 Simulating button %d press for %d ms...\n", button_id, duration_ms);
+    printf("\n--- Simulating button %d press for %d ms ---\n", button_id, duration_ms);
     
     if (button_id == 1) {
         btn1_state = 1;
@@ -156,7 +156,7 @@ void simulate_button_press(int button_id, int duration_ms)
 // Main function
 int main(void)
 {
-    printf("🚀 MultiButton Library Basic Example\n");
+    printf("MultiButton Library Basic Example\n");
     printf("=====================================\n\n");
     
     // Set up signal handler
@@ -164,9 +164,9 @@ int main(void)
     
     // Initialize buttons
     buttons_init();
-    printf("✅ Buttons initialized successfully\n\n");
+    printf("Buttons initialized OK\n\n");
     
-    printf("📋 Demo sequence:\n");
+    printf("Demo sequence:\n");
     printf("1. Single click simulation\n");
     printf("2. Double click simulation\n");
     printf("3. Long press simulation\n");
@@ -200,8 +200,8 @@ int main(void)
     printf("Button 1 repeat count: %d\n", button_get_repeat_count(&btn1));
     printf("Button 2 repeat count: %d\n", button_get_repeat_count(&btn2));
     
-    printf("\n✅ Demo completed successfully!\n");
-    printf("💡 In a real application, button_ticks() would be called from a 5ms timer interrupt.\n");
+    printf("\nDemo completed successfully!\n");
+    printf("Note: In a real application, button_ticks() would be called from a 5ms timer interrupt.\n");
     
     return 0;
 }
