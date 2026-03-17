@@ -183,6 +183,7 @@ static void button_handler(Button* handle)
 			if (handle->repeat < PRESS_REPEAT_MAX_NUM) {
 				handle->repeat++;
 			}
+            handle->event = (uint8_t)BTN_PRESS_REPEAT;
 			EVENT_CB(BTN_PRESS_REPEAT);
 			handle->ticks = 0;
 			handle->state = BTN_STATE_REPEAT;
