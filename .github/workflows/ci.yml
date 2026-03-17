@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build-make:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build library and examples
+        run: make all CC=${{ matrix.cc }}
+      - name: Run tests
+        run: make test
+
+  build-cmake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -DMULTIBUTTON_BUILD_EXAMPLES=ON -DMULTIBUTTON_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build
+      - name: Run tests
+        run: cd build && ctest --output-on-failure

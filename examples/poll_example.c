@@ -17,7 +17,7 @@ static volatile int running = 1;
 void signal_handler(int sig)
 {
     if (sig == SIGINT) {
-        printf("\n🛑 Exiting polling example...\n");
+        printf("\nExiting polling example...\n");
         running = 0;
     }
 }
@@ -58,7 +58,7 @@ uint8_t read_button_gpio(uint8_t button_id)
 // Initialize button without callbacks (polling mode)
 void button_init_polling(void)
 {
-    printf("🔧 Initializing button for polling mode...\n");
+    printf("Initializing button for polling mode...\n");
     
     // Initialize button but don't attach any callbacks
     button_init(&btn1, read_button_gpio, 1, 1);
@@ -66,7 +66,7 @@ void button_init_polling(void)
     // Start button processing
     button_start(&btn1);
     
-    printf("✅ Button initialized for polling\n\n");
+    printf("Button initialized for polling OK\n\n");
 }
 
 // Poll button events and handle them
@@ -82,7 +82,7 @@ void poll_and_handle_events(void)
     if (current_event != last_event && current_event != BTN_NONE_PRESS) {
         event_count++;
         
-        printf("📡 [%d] Polled Event: ", event_count);
+        printf("[%d] Polled Event: ", event_count);
         
         switch (current_event) {
             case BTN_PRESS_DOWN:
@@ -92,22 +92,22 @@ void poll_and_handle_events(void)
                 printf("Press Up");
                 break;
             case BTN_SINGLE_CLICK:
-                printf("Single Click ✨");
+                printf("Single Click");
                 break;
             case BTN_DOUBLE_CLICK:
-                printf("Double Click ✨✨");
+                printf("Double Click");
                 break;
             case BTN_LONG_PRESS_START:
-                printf("Long Press Start 🔥");
+                printf("Long Press Start");
                 break;
             case BTN_LONG_PRESS_HOLD:
-                printf("Long Press Hold 🔥🔥");
+                printf("Long Press Hold");
                 break;
             case BTN_PRESS_REPEAT:
-                printf("Press Repeat (count: %d) 🔄", button_get_repeat_count(&btn1));
+                printf("Press Repeat (count: %d)", button_get_repeat_count(&btn1));
                 break;
             default:
-                printf("Unknown Event ❓");
+                printf("Unknown Event");
                 break;
         }
         
@@ -126,7 +126,7 @@ void print_status(void)
     if (++status_counter >= 200) {  // Print every 1 second (200 * 5ms)
         status_counter = 0;
         
-        printf("📊 Status - Pressed: %s, Repeat: %d, Event: %d\n",
+        printf("Status - Pressed: %s, Repeat: %d, Event: %d\n",
                button_is_pressed(&btn1) ? "Yes" : "No",
                button_get_repeat_count(&btn1),
                button_get_event(&btn1));
@@ -136,12 +136,12 @@ void print_status(void)
 // Main function
 int main(void)
 {
-    printf("🚀 MultiButton Library Polling Example\n");
+    printf("MultiButton Library Polling Example\n");
     printf("========================================\n\n");
     
-    printf("💡 This example demonstrates polling-based event detection\n");
-    printf("📡 Events are detected by polling button_get_event() instead of using callbacks\n");
-    printf("🎬 A predefined pattern will simulate button presses\n\n");
+    printf("This example demonstrates polling-based event detection.\n");
+    printf("Events are detected by polling button_get_event() instead of using callbacks.\n");
+    printf("A predefined pattern will simulate button presses.\n\n");
     
     // Set up signal handler
     signal(SIGINT, signal_handler);
@@ -149,7 +149,7 @@ int main(void)
     // Initialize button for polling
     button_init_polling();
     
-    printf("🎭 Starting simulation with predefined patterns...\n");
+    printf("Starting simulation with predefined patterns...\n");
     printf("   Pattern includes: short press, double click, long press, rapid clicks\n");
     printf("   Press Ctrl+C to exit\n\n");
     
@@ -171,17 +171,17 @@ int main(void)
         
         // Stop after reasonable demo time
         if (++tick_count > 2000) {  // 10 seconds
-            printf("\n🏁 Demo pattern completed!\n");
+            printf("\nDemo pattern completed!\n");
             break;
         }
     }
     
     // Cleanup
-    printf("\n🧹 Cleaning up...\n");
+    printf("\nCleaning up...\n");
     button_stop(&btn1);
     
-    printf("✅ Polling example finished!\n");
-    printf("\n📚 Key takeaways:\n");
+    printf("Polling example finished.\n");
+    printf("\nKey takeaways:\n");
     printf("   • Polling mode allows checking events at your own pace\n");
     printf("   • No callback functions needed\n");
     printf("   • Use button_get_event() to check current event\n");

@@ -9,12 +9,22 @@
 #include <stdint.h>
 #include <string.h>
 
+// Version information
+#define MULTIBUTTON_VERSION_MAJOR 1
+#define MULTIBUTTON_VERSION_MINOR 1
+#define MULTIBUTTON_VERSION_PATCH 0
+
 // Configuration constants - can be modified according to your needs
 #define TICKS_INTERVAL          5    // ms - timer interrupt interval
 #define DEBOUNCE_TICKS          3    // MAX 7 (0 ~ 7) - debounce filter depth
 #define SHORT_TICKS             (300 / TICKS_INTERVAL)   // short press threshold
 #define LONG_TICKS              (1000 / TICKS_INTERVAL)  // long press threshold
 #define PRESS_REPEAT_MAX_NUM    15   // maximum repeat counter value
+
+// Compile-time check: debounce_cnt is a 3-bit field, max value is 7
+#if DEBOUNCE_TICKS > 7
+  #error "DEBOUNCE_TICKS exceeds 3-bit field maximum (7)"
+#endif
 
 // Forward declaration
 typedef struct _Button Button;
@@ -58,6 +68,23 @@ struct _Button {
 	BtnCallback cb[BTN_EVENT_COUNT];    // callback function array
 	Button* next;                       // next button in linked list
 };
+
+// Optional thread-safety support for RTOS environments.
+// Define MULTIBUTTON_THREAD_SAFE and provide MULTIBUTTON_LOCK()/MULTIBUTTON_UNLOCK()
+// macros before including this header to enable thread-safe list operations.
+// Example:
+//   #define MULTIBUTTON_THREAD_SAFE
+//   #define MULTIBUTTON_LOCK()   osMutexAcquire(btn_mutex, osWaitForever)
+//   #define MULTIBUTTON_UNLOCK() osMutexRelease(btn_mutex)
+//   #include "multi_button.h"
+#ifdef MULTIBUTTON_THREAD_SAFE
+  #if !defined(MULTIBUTTON_LOCK) || !defined(MULTIBUTTON_UNLOCK)
+    #error "Define MULTIBUTTON_LOCK() and MULTIBUTTON_UNLOCK() when using MULTIBUTTON_THREAD_SAFE"
+  #endif
+#else
+  #define MULTIBUTTON_LOCK()
+  #define MULTIBUTTON_UNLOCK()
+#endif
 
 #ifdef __cplusplus
 extern "C" {

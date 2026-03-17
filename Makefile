@@ -92,9 +92,16 @@ $(BIN_DIR)/poll_example: $(OBJ_DIR)/poll_example.o $(STATIC_LIB) | $(BIN_DIR)
 examples: $(addprefix $(BIN_DIR)/, $(EXAMPLES))
 
 # Test target
-test: examples
-	@echo "Running basic example..."
-	@cd $(BIN_DIR) && ./basic_example
+test: $(BIN_DIR)/test_button
+	@echo "Running unit tests..."
+	@$(BIN_DIR)/test_button
+
+# Build test binary
+$(BIN_DIR)/test_button: $(OBJ_DIR)/test_button.o $(STATIC_LIB) | $(BIN_DIR)
+	$(CC) $< -L$(LIB_DIR) -lmultibutton -o $@
+
+$(OBJ_DIR)/test_button.o: tests/test_button.c multi_button.h | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Clean build files
 clean:
@@ -147,6 +154,9 @@ info:
 
 # Phony targets
 .PHONY: all library shared examples clean install uninstall help info test basic_example advanced_example poll_example
+
+# Test dependency
+$(OBJ_DIR)/test_button.o: tests/test_button.c multi_button.h
 
 # Dependencies
 $(OBJ_DIR)/multi_button.o: multi_button.c multi_button.h

@@ -1,1 +1,19 @@
 build/
+*.o
+*.a
+*.so
+*.d
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+cmake-build-*/
+compile_commands.json
