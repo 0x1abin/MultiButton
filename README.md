@@ -253,22 +253,6 @@ A: Yes. Define `MULTIBUTTON_THREAD_SAFE` and provide `MULTIBUTTON_LOCK()`/`MULTI
 - Supports bare-metal and RTOS environments
 - Minimal memory footprint for resource-constrained systems
 
-## Migration from v1.0/v1.1.0
-
-v1.1.1 introduces breaking API changes:
-
-1. **Callback signature changed**: Callbacks now receive `void* user_data` as a second parameter.
-   ```c
-   // v1.x: void callback(Button* btn)
-   // v2.0: void callback(Button* btn, void* user_data)
-   ```
-
-2. **`button_attach()` has a new parameter**: Pass `NULL` if you don't need user data.
-   ```c
-   // v1.x: button_attach(&btn, BTN_SINGLE_CLICK, on_click);
-   // v2.0: button_attach(&btn, BTN_SINGLE_CLICK, on_click, NULL);
-   ```
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.

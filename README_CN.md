@@ -14,29 +14,6 @@
 - **参数验证**: 完善的错误检查和边界条件处理
 - **线程安全**: 可选的 RTOS 锁支持，裸机零开销
 
-## v1.1.1 新特性
-
-### API 变更 (Breaking Changes)
-
-1. **回调签名变更**: 回调函数新增 `void* user_data` 参数
-   ```c
-   // v1.x: void callback(Button* btn)
-   // v2.0: void callback(Button* btn, void* user_data)
-   ```
-
-2. **`button_attach()` 新增参数**: 不需要 user_data 时传 `NULL`
-   ```c
-   // v1.x: button_attach(&btn, BTN_SINGLE_CLICK, on_click);
-   // v2.0: button_attach(&btn, BTN_SINGLE_CLICK, on_click, NULL);
-   ```
-
-### 新功能
-
-- **user_data 上下文指针**: 回调函数接收用户上下文，无需全局变量关联按键状态
-- **ticks 溢出保护**: 计数器饱和而非回绕，长按场景下行为确定
-- **链表遍历安全**: 回调中调用 `button_stop()` 不会导致崩溃
-- **锁优化**: 回调在锁外执行，普通互斥量即可（无需递归锁）
-
 ## 编译和构建
 
 ### 使用 Makefile (推荐)

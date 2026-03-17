@@ -6,7 +6,7 @@
 #include "multi_button.h"
 
 // Macro for callback execution with null check, passes user_data
-#define EVENT_CB(ev)   do { if(handle->cb[ev]) handle->cb[ev](handle, handle->user_data); } while(0)
+#define EVENT_CB(ev)   do { if (handle->cb[ev]) handle->cb[ev](handle, handle->user_data); } while(0)
 
 // Button handle list head
 static Button* head_handle = NULL;
@@ -138,7 +138,7 @@ static void button_handler(Button* handle)
 		}
 	}
 
-	/*------------Button debounce handling---------------*/
+	/* Button debounce handling */
 	if (read_gpio_level != handle->button_level) {
 		// Continue reading same new level for debounce
 		if (++(handle->debounce_cnt) >= DEBOUNCE_TICKS) {
@@ -150,7 +150,7 @@ static void button_handler(Button* handle)
 		handle->debounce_cnt = 0;
 	}
 
-	/*-----------------State machine-------------------*/
+	/* State machine */
 	switch (handle->state) {
 	case BTN_STATE_IDLE:
 		if (handle->button_level == handle->active_level) {
@@ -188,7 +188,7 @@ static void button_handler(Button* handle)
 			if (handle->repeat < PRESS_REPEAT_MAX_NUM) {
 				handle->repeat++;
 			}
-            handle->event = (uint8_t)BTN_PRESS_REPEAT;
+			handle->event = (uint8_t)BTN_PRESS_REPEAT;
 			EVENT_CB(BTN_PRESS_REPEAT);
 			handle->ticks = 0;
 			handle->state = BTN_STATE_REPEAT;

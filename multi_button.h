@@ -3,8 +3,8 @@
  * All rights reserved
  */
 
-#ifndef _MULTI_BUTTON_H_
-#define _MULTI_BUTTON_H_
+#ifndef MULTI_BUTTON_H
+#define MULTI_BUTTON_H
 
 #include <stdint.h>
 #include <string.h>
@@ -30,7 +30,7 @@
 typedef struct _Button Button;
 
 // Button callback function type
-typedef void (*BtnCallback)(Button* btn_handle, void* user_data);
+typedef void (*BtnCallback)(Button* handle, void* user_data);
 
 // Button event types
 typedef enum {
