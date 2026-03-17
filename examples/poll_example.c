@@ -182,11 +182,11 @@ int main(void)
     
     printf("Polling example finished.\n");
     printf("\nKey takeaways:\n");
-    printf("   • Polling mode allows checking events at your own pace\n");
-    printf("   • No callback functions needed\n");
-    printf("   • Use button_get_event() to check current event\n");
-    printf("   • Still need to call button_ticks() every 5ms\n");
-    printf("   • Useful for main loop architectures without interrupts\n");
+    printf("   - Polling mode allows checking events at your own pace\n");
+    printf("   - No callback functions needed\n");
+    printf("   - Use button_get_event() to check current event\n");
+    printf("   - Still need to call button_ticks() every 5ms\n");
+    printf("   - Useful for main loop architectures without interrupts\n");
     
     return 0;
 }

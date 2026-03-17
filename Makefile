@@ -1,5 +1,5 @@
 # MultiButton Library Makefile
-# 支持编译库文件和示例程序
+# Build library and example programs
 
 # Compiler and tools
 CC = gcc

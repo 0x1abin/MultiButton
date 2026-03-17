@@ -215,7 +215,7 @@ static int test_debounce(void)
     return 0;
 }
 
-/* Test 6: REPEAT→PRESS transition resets ticks (bug fix verification) */
+/* Test 6: REPEAT->PRESS transition resets ticks (bug fix verification) */
 static int test_repeat_to_press_transition(void)
 {
     setup_button();
@@ -230,7 +230,7 @@ static int test_repeat_to_press_transition(void)
     mock_gpio_value = 1;
     tick_n(DEBOUNCE_TICKS + SHORT_TICKS + 20);
 
-    /* At this point, should have transitioned REPEAT→PRESS with ticks reset.
+    /* At this point, should have transitioned REPEAT->PRESS with ticks reset.
      * It should NOT have fired BTN_LONG_PRESS_START yet because ticks was reset. */
     ASSERT(!has_event(BTN_LONG_PRESS_START));
 
