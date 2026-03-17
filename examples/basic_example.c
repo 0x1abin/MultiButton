@@ -41,57 +41,58 @@ uint8_t read_button_gpio(uint8_t button_id)
 }
 
 // Callback functions for button 1
-void btn1_single_click_handler(Button* btn)
+void btn1_single_click_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN1] Single Click\n");
 }
 
-void btn1_double_click_handler(Button* btn)
+void btn1_double_click_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN1] Double Click\n");
 }
 
-void btn1_long_press_start_handler(Button* btn)
+void btn1_long_press_start_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN1] Long Press Start\n");
 }
 
-void btn1_long_press_hold_handler(Button* btn)
+void btn1_long_press_hold_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN1] Long Press Hold...\n");
 }
 
-void btn1_press_repeat_handler(Button* btn)
+void btn1_press_repeat_handler(Button* btn, void* user_data)
 {
+    (void)user_data;
     printf("[BTN1] Press Repeat (count: %d)\n", button_get_repeat_count(btn));
 }
 
 // Callback functions for button 2
-void btn2_single_click_handler(Button* btn)
+void btn2_single_click_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN2] Single Click\n");
 }
 
-void btn2_double_click_handler(Button* btn)
+void btn2_double_click_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN2] Double Click\n");
 }
 
-void btn2_press_down_handler(Button* btn)
+void btn2_press_down_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN2] Press Down\n");
 }
 
-void btn2_press_up_handler(Button* btn)
+void btn2_press_up_handler(Button* btn, void* user_data)
 {
-    (void)btn;  // suppress unused parameter warning
+    (void)btn; (void)user_data;
     printf("[BTN2] Press Up\n");
 }
 
@@ -102,20 +103,20 @@ void buttons_init(void)
     button_init(&btn1, read_button_gpio, 1, 1);
     
     // Attach event handlers for button 1
-    button_attach(&btn1, BTN_SINGLE_CLICK, btn1_single_click_handler);
-    button_attach(&btn1, BTN_DOUBLE_CLICK, btn1_double_click_handler);
-    button_attach(&btn1, BTN_LONG_PRESS_START, btn1_long_press_start_handler);
-    button_attach(&btn1, BTN_LONG_PRESS_HOLD, btn1_long_press_hold_handler);
-    button_attach(&btn1, BTN_PRESS_REPEAT, btn1_press_repeat_handler);
-    
+    button_attach(&btn1, BTN_SINGLE_CLICK, btn1_single_click_handler, NULL);
+    button_attach(&btn1, BTN_DOUBLE_CLICK, btn1_double_click_handler, NULL);
+    button_attach(&btn1, BTN_LONG_PRESS_START, btn1_long_press_start_handler, NULL);
+    button_attach(&btn1, BTN_LONG_PRESS_HOLD, btn1_long_press_hold_handler, NULL);
+    button_attach(&btn1, BTN_PRESS_REPEAT, btn1_press_repeat_handler, NULL);
+
     // Initialize button 2 (active high for simulation)
     button_init(&btn2, read_button_gpio, 1, 2);
-    
+
     // Attach event handlers for button 2
-    button_attach(&btn2, BTN_SINGLE_CLICK, btn2_single_click_handler);
-    button_attach(&btn2, BTN_DOUBLE_CLICK, btn2_double_click_handler);
-    button_attach(&btn2, BTN_PRESS_DOWN, btn2_press_down_handler);
-    button_attach(&btn2, BTN_PRESS_UP, btn2_press_up_handler);
+    button_attach(&btn2, BTN_SINGLE_CLICK, btn2_single_click_handler, NULL);
+    button_attach(&btn2, BTN_DOUBLE_CLICK, btn2_double_click_handler, NULL);
+    button_attach(&btn2, BTN_PRESS_DOWN, btn2_press_down_handler, NULL);
+    button_attach(&btn2, BTN_PRESS_UP, btn2_press_up_handler, NULL);
     
     // Start button processing
     button_start(&btn1);

@@ -53,21 +53,22 @@ void generic_event_handler(Button* btn, const char* event_name)
 }
 
 // Event handlers
-void on_press_down(Button* btn) { generic_event_handler(btn, "Press Down"); }
-void on_press_up(Button* btn) { generic_event_handler(btn, "Press Up"); }
-void on_single_click(Button* btn) { generic_event_handler(btn, "Single Click"); }
-void on_double_click(Button* btn) { generic_event_handler(btn, "Double Click"); }
-void on_long_press_start(Button* btn) { generic_event_handler(btn, "Long Press Start"); }
-void on_long_press_hold(Button* btn) { generic_event_handler(btn, "Long Press Hold"); }
-void on_press_repeat(Button* btn) { generic_event_handler(btn, "Press Repeat"); }
+void on_press_down(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Press Down"); }
+void on_press_up(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Press Up"); }
+void on_single_click(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Single Click"); }
+void on_double_click(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Double Click"); }
+void on_long_press_start(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Long Press Start"); }
+void on_long_press_hold(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Long Press Hold"); }
+void on_press_repeat(Button* btn, void* ud) { (void)ud; generic_event_handler(btn, "Press Repeat"); }
 
 // Special handler for button configuration
-void on_config_button_click(Button* btn)
+void on_config_button_click(Button* btn, void* user_data)
 {
     static int config_state = 0;
     
+    (void)user_data;
     printf("[CFG] Config Button %d clicked!\n", btn->button_id);
-    
+
     switch (config_state) {
         case 0:
             verbose_mode = !verbose_mode;
@@ -98,18 +99,18 @@ void init_button(int index, uint8_t button_id, int enable_all_events)
     button_init(&buttons[index], read_button_gpio, 1, button_id);
     
     if (enable_all_events) {
-        button_attach(&buttons[index], BTN_PRESS_DOWN, on_press_down);
-        button_attach(&buttons[index], BTN_PRESS_UP, on_press_up);
-        button_attach(&buttons[index], BTN_SINGLE_CLICK, on_single_click);
-        button_attach(&buttons[index], BTN_DOUBLE_CLICK, on_double_click);
-        button_attach(&buttons[index], BTN_LONG_PRESS_START, on_long_press_start);
-        button_attach(&buttons[index], BTN_LONG_PRESS_HOLD, on_long_press_hold);
-        button_attach(&buttons[index], BTN_PRESS_REPEAT, on_press_repeat);
+        button_attach(&buttons[index], BTN_PRESS_DOWN, on_press_down, NULL);
+        button_attach(&buttons[index], BTN_PRESS_UP, on_press_up, NULL);
+        button_attach(&buttons[index], BTN_SINGLE_CLICK, on_single_click, NULL);
+        button_attach(&buttons[index], BTN_DOUBLE_CLICK, on_double_click, NULL);
+        button_attach(&buttons[index], BTN_LONG_PRESS_START, on_long_press_start, NULL);
+        button_attach(&buttons[index], BTN_LONG_PRESS_HOLD, on_long_press_hold, NULL);
+        button_attach(&buttons[index], BTN_PRESS_REPEAT, on_press_repeat, NULL);
     } else {
         // Only essential events
-        button_attach(&buttons[index], BTN_SINGLE_CLICK, on_single_click);
-        button_attach(&buttons[index], BTN_DOUBLE_CLICK, on_double_click);
-        button_attach(&buttons[index], BTN_LONG_PRESS_START, on_long_press_start);
+        button_attach(&buttons[index], BTN_SINGLE_CLICK, on_single_click, NULL);
+        button_attach(&buttons[index], BTN_DOUBLE_CLICK, on_double_click, NULL);
+        button_attach(&buttons[index], BTN_LONG_PRESS_START, on_long_press_start, NULL);
     }
     
     button_start(&buttons[index]);
@@ -131,7 +132,7 @@ void buttons_init(void)
     // Button 3: Configuration button with special handler
     init_button(2, 3, 0);
     button_detach(&buttons[2], BTN_SINGLE_CLICK);
-    button_attach(&buttons[2], BTN_SINGLE_CLICK, on_config_button_click);
+    button_attach(&buttons[2], BTN_SINGLE_CLICK, on_config_button_click, NULL);
     printf("  [OK] Button 3: Configuration button\n");
     
     // Button 4: Dynamic configuration demo
@@ -179,9 +180,9 @@ void dynamic_config_demo(void)
     
     // Add more handlers dynamically
     printf("2. Adding more event handlers to button 4...\n");
-    button_attach(&buttons[3], BTN_PRESS_DOWN, on_press_down);
-    button_attach(&buttons[3], BTN_PRESS_UP, on_press_up);
-    button_attach(&buttons[3], BTN_PRESS_REPEAT, on_press_repeat);
+    button_attach(&buttons[3], BTN_PRESS_DOWN, on_press_down, NULL);
+    button_attach(&buttons[3], BTN_PRESS_UP, on_press_up, NULL);
+    button_attach(&buttons[3], BTN_PRESS_REPEAT, on_press_repeat, NULL);
     
     printf("3. Testing button 4 with full handlers...\n");
     simulate_button_press(4, 100);

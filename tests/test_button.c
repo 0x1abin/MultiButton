@@ -52,13 +52,13 @@ static int event_count = 0;
 
 static void reset_event_log(void) { event_count = 0; }
 
-static void log_press_down(Button* btn)    { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_DOWN; }
-static void log_press_up(Button* btn)      { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_UP; }
-static void log_single_click(Button* btn)  { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_SINGLE_CLICK; }
-static void log_double_click(Button* btn)  { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_DOUBLE_CLICK; }
-static void log_long_start(Button* btn)    { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_LONG_PRESS_START; }
-static void log_long_hold(Button* btn)     { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_LONG_PRESS_HOLD; }
-static void log_repeat(Button* btn)        { (void)btn; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_REPEAT; }
+static void log_press_down(Button* btn, void* ud)    { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_DOWN; }
+static void log_press_up(Button* btn, void* ud)      { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_UP; }
+static void log_single_click(Button* btn, void* ud)  { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_SINGLE_CLICK; }
+static void log_double_click(Button* btn, void* ud)  { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_DOUBLE_CLICK; }
+static void log_long_start(Button* btn, void* ud)    { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_LONG_PRESS_START; }
+static void log_long_hold(Button* btn, void* ud)     { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_LONG_PRESS_HOLD; }
+static void log_repeat(Button* btn, void* ud)        { (void)btn; (void)ud; if (event_count < MAX_EVENTS) event_log[event_count++] = BTN_PRESS_REPEAT; }
 
 static int has_event(ButtonEvent ev)
 {
@@ -85,13 +85,13 @@ static void setup_button(void)
     mock_gpio_value = 0;
     reset_event_log();
     button_init(&test_btn, mock_read_gpio, 1, 1);
-    button_attach(&test_btn, BTN_PRESS_DOWN, log_press_down);
-    button_attach(&test_btn, BTN_PRESS_UP, log_press_up);
-    button_attach(&test_btn, BTN_SINGLE_CLICK, log_single_click);
-    button_attach(&test_btn, BTN_DOUBLE_CLICK, log_double_click);
-    button_attach(&test_btn, BTN_LONG_PRESS_START, log_long_start);
-    button_attach(&test_btn, BTN_LONG_PRESS_HOLD, log_long_hold);
-    button_attach(&test_btn, BTN_PRESS_REPEAT, log_repeat);
+    button_attach(&test_btn, BTN_PRESS_DOWN, log_press_down, NULL);
+    button_attach(&test_btn, BTN_PRESS_UP, log_press_up, NULL);
+    button_attach(&test_btn, BTN_SINGLE_CLICK, log_single_click, NULL);
+    button_attach(&test_btn, BTN_DOUBLE_CLICK, log_double_click, NULL);
+    button_attach(&test_btn, BTN_LONG_PRESS_START, log_long_start, NULL);
+    button_attach(&test_btn, BTN_LONG_PRESS_HOLD, log_long_hold, NULL);
+    button_attach(&test_btn, BTN_PRESS_REPEAT, log_repeat, NULL);
     button_start(&test_btn);
 }
 
@@ -287,7 +287,7 @@ static int test_null_handle(void)
 {
     /* These should not crash */
     button_init(NULL, mock_read_gpio, 1, 1);
-    button_attach(NULL, BTN_SINGLE_CLICK, log_single_click);
+    button_attach(NULL, BTN_SINGLE_CLICK, log_single_click, NULL);
     button_detach(NULL, BTN_SINGLE_CLICK);
     button_stop(NULL);
     button_reset(NULL);
@@ -319,6 +319,79 @@ static int test_reset(void)
     return 0;
 }
 
+/* Test 11: user_data is passed to callback */
+static void* captured_user_data = NULL;
+
+static void capture_user_data_cb(Button* btn, void* user_data)
+{
+    (void)btn;
+    captured_user_data = user_data;
+}
+
+static int test_user_data(void)
+{
+    int my_context = 42;
+    mock_gpio_value = 0;
+    reset_event_log();
+
+    button_init(&test_btn, mock_read_gpio, 1, 1);
+    button_attach(&test_btn, BTN_PRESS_DOWN, capture_user_data_cb, &my_context);
+    button_start(&test_btn);
+
+    captured_user_data = NULL;
+    mock_gpio_value = 1;
+    tick_n(DEBOUNCE_TICKS + 5);
+
+    ASSERT(captured_user_data == &my_context);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 12: different events get different user_data */
+static void* captured_down_data = NULL;
+static void* captured_up_data = NULL;
+
+static void capture_down_cb(Button* btn, void* user_data)
+{
+    (void)btn;
+    captured_down_data = user_data;
+}
+
+static void capture_up_cb(Button* btn, void* user_data)
+{
+    (void)btn;
+    captured_up_data = user_data;
+}
+
+static int test_per_event_user_data(void)
+{
+    int ctx_down = 1, ctx_up = 2;
+    mock_gpio_value = 0;
+    reset_event_log();
+
+    button_init(&test_btn, mock_read_gpio, 1, 1);
+    button_attach(&test_btn, BTN_PRESS_DOWN, capture_down_cb, &ctx_down);
+    button_attach(&test_btn, BTN_PRESS_UP, capture_up_cb, &ctx_up);
+    button_start(&test_btn);
+
+    captured_down_data = NULL;
+    captured_up_data = NULL;
+
+    /* Press */
+    mock_gpio_value = 1;
+    tick_n(DEBOUNCE_TICKS + 5);
+    ASSERT(captured_down_data == &ctx_down);
+
+    /* Release */
+    mock_gpio_value = 0;
+    tick_n(DEBOUNCE_TICKS + 5);
+    ASSERT(captured_up_data == &ctx_up);
+
+    teardown_button();
+    return 0;
+}
+
 /* ============================================================ */
 
 int main(void)
@@ -336,6 +409,8 @@ int main(void)
     RUN_TEST(test_stop_and_restart);
     RUN_TEST(test_null_handle);
     RUN_TEST(test_reset);
+    RUN_TEST(test_user_data);
+    RUN_TEST(test_per_event_user_data);
 
     printf("\nResults: %d/%d passed", tests_passed, tests_run);
     if (tests_failed > 0) {

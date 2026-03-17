@@ -11,7 +11,7 @@
 
 // Version information
 #define MULTIBUTTON_VERSION_MAJOR 1
-#define MULTIBUTTON_VERSION_MINOR 1
+#define MULTIBUTTON_VERSION_MINOR 2
 #define MULTIBUTTON_VERSION_PATCH 0
 
 // Configuration constants - can be modified according to your needs
@@ -30,7 +30,7 @@
 typedef struct _Button Button;
 
 // Button callback function type
-typedef void (*BtnCallback)(Button* btn_handle);
+typedef void (*BtnCallback)(Button* btn_handle, void* user_data);
 
 // Button event types
 typedef enum {
@@ -66,6 +66,7 @@ struct _Button {
 	uint8_t  button_id;                 // button identifier
 	uint8_t  (*hal_button_level)(uint8_t button_id);  // HAL function to read GPIO
 	BtnCallback cb[BTN_EVENT_COUNT];    // callback function array
+	void* user_data[BTN_EVENT_COUNT];   // per-event user data
 	Button* next;                       // next button in linked list
 };
 
@@ -92,7 +93,7 @@ extern "C" {
 
 // Public API functions
 void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_level, uint8_t button_id);
-void button_attach(Button* handle, ButtonEvent event, BtnCallback cb);
+void button_attach(Button* handle, ButtonEvent event, BtnCallback cb, void* user_data);
 void button_detach(Button* handle, ButtonEvent event);
 ButtonEvent button_get_event(Button* handle);
 int  button_start(Button* handle);

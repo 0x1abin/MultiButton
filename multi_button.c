@@ -6,7 +6,7 @@
 #include "multi_button.h"
 
 // Macro for callback execution with null check
-#define EVENT_CB(ev)   do { if(handle->cb[ev]) handle->cb[ev](handle); } while(0)
+#define EVENT_CB(ev)   do { if(handle->cb[ev]) handle->cb[ev](handle, handle->user_data[ev]); } while(0)
 
 // Button handle list head
 static Button* head_handle = NULL;
@@ -41,12 +41,14 @@ void button_init(Button* handle, uint8_t(*pin_level)(uint8_t), uint8_t active_le
   * @param  handle: the button handle struct
   * @param  event: trigger event type
   * @param  cb: callback function
+  * @param  user_data: user data pointer passed to callback
   * @retval None
   */
-void button_attach(Button* handle, ButtonEvent event, BtnCallback cb)
+void button_attach(Button* handle, ButtonEvent event, BtnCallback cb, void* user_data)
 {
 	if (!handle || event >= BTN_EVENT_COUNT) return;  // parameter validation
 	handle->cb[event] = cb;
+	handle->user_data[event] = user_data;
 }
 
 /**
@@ -59,6 +61,7 @@ void button_detach(Button* handle, ButtonEvent event)
 {
 	if (!handle || event >= BTN_EVENT_COUNT) return;  // parameter validation
 	handle->cb[event] = NULL;
+	handle->user_data[event] = NULL;
 }
 
 /**
