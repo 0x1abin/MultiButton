@@ -366,7 +366,7 @@ static int test_ticks_saturation(void)
 
     /* Press and hold the button */
     mock_gpio_value = 1;
-    tick_n(DEBOUNCE_TICKS + 5);
+    tick_n(DEBOUNCE_TICKS + 5 + LONG_TICKS);
 
     /* Manually set ticks near UINT16_MAX to test saturation */
     test_btn.ticks = UINT16_MAX - 2;

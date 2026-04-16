@@ -232,11 +232,7 @@ static void button_handler(Button* handle)
 			// Continue holding
 			handle->event = (uint8_t)BTN_LONG_PRESS_HOLD;
 			#if LONG_CALLBACK_TICKS > 1
-			  if (handle->ticks >= LONG_CALLBACK_TICKS) {
-				handle->ticks = 0;  // reset for next long-press hold callback
-			  } else {
-				break;  // not yet time for next callback
-			  }
+			  if(handle->ticks % LONG_CALLBACK_TICKS != 0) break; // only call callback at defined intervals
 			#endif
 			EVENT_CB(BTN_LONG_PRESS_HOLD);
 		} else {
