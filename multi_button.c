@@ -177,6 +177,9 @@ static void button_handler(Button* handle)
 			handle->event = (uint8_t)BTN_LONG_PRESS_START;
 			EVENT_CB(BTN_LONG_PRESS_START);
 			handle->state = BTN_STATE_LONG_HOLD;
+			#if LONG_CALLBACK_TICKS > 1 // if LONG_CALLBACK_TICKS is 1, we will call BTN_LONG_PRESS_HOLD immediately in the next tick, no need to reset ticks here
+			  handle->ticks = 0;      // reset for long-press hold timing
+			#endif
 		}
 		break;
 
@@ -228,6 +231,13 @@ static void button_handler(Button* handle)
 		if (handle->button_level == handle->active_level) {
 			// Continue holding
 			handle->event = (uint8_t)BTN_LONG_PRESS_HOLD;
+			#if LONG_CALLBACK_TICKS > 1
+			  if (handle->ticks >= LONG_CALLBACK_TICKS) {
+				handle->ticks = 0;  // reset for next long-press hold callback
+			  } else {
+				break;  // not yet time for next callback
+			  }
+			#endif
 			EVENT_CB(BTN_LONG_PRESS_HOLD);
 		} else {
 			// Released from long press
