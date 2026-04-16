@@ -26,6 +26,10 @@
 #if DEBOUNCE_TICKS > 7
   #error "DEBOUNCE_TICKS exceeds 3-bit field maximum (7)"
 #endif
+// Compile-time check: avoid div-0 problem
+#if LONG_CALLBACK_TICKS < 1
+  #error "LONG_CALLBACK_TICKS must be at least 1"
+#endif
 
 
 // Forward declaration
