@@ -19,12 +19,18 @@
 #define DEBOUNCE_TICKS          3    // MAX 7 (0 ~ 7) - debounce filter depth
 #define SHORT_TICKS             (300 / TICKS_INTERVAL)   // short press threshold
 #define LONG_TICKS              (1000 / TICKS_INTERVAL)  // long press threshold
+#define LONG_CALLBACK_TICKS		5	 // minimum TICKS interval between two BTN_LONG_PRESS_HOLD event callback. LONG_CALLBACK_TICKS * TICKS_INTERVAL = minimum interval in ms.
 #define PRESS_REPEAT_MAX_NUM    15   // maximum repeat counter value
 
 // Compile-time check: debounce_cnt is a 3-bit field, max value is 7
 #if DEBOUNCE_TICKS > 7
   #error "DEBOUNCE_TICKS exceeds 3-bit field maximum (7)"
 #endif
+// Compile-time check: avoid div-0 problem
+#if LONG_CALLBACK_TICKS < 1
+  #error "LONG_CALLBACK_TICKS must be at least 1"
+#endif
+
 
 // Forward declaration
 typedef struct _Button Button;

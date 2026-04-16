@@ -265,13 +265,13 @@ void on_long_hold(Button* btn, void* user_data)
 ## 状态机说明
 
 ```
-                          +-- 长按 -->  [LONG_HOLD]
-                          |                  |
-[IDLE] -- 按下 --> [PRESS]                 抬起
-   ^                  |                      |
-   |               抬起                      |
-   |                  v                      |
-   |             [RELEASE] <-----------------+
+   +------------- 抬起 --------- [LONG_HOLD]
+   v                                     ^             
+[IDLE] -- 按下 --> [PRESS] ----- 长按 ----+                                 
+   ^                  |                      
+   |               抬起                      
+   |                  v                      
+   |             [RELEASE]
    |             |       ^
    |          超时|       | 快速按下
    |             |       |

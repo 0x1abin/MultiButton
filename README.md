@@ -64,13 +64,13 @@ void timer_5ms_isr(void)
 ## State Machine
 
 ```
-                          +-- long hold -->  [LONG_HOLD]
-                          |                      |
-[IDLE] -- press --> [PRESS]                   release
-   ^                  |                          |
-   |               release                       |
-   |                  v                          |
-   |             [RELEASE] <---------------------+
+   +------------- release --------- [LONG_HOLD]
+   v                                     ^             
+[IDLE] -- press --> [PRESS] --long hold--+        
+   ^                  |                          
+   |               release                       
+   |                  v                          
+   |             [RELEASE]
    |             |       ^
    |      timeout|       | quick press
    |             |       |
