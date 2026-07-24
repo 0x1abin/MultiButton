@@ -92,9 +92,10 @@ $(BIN_DIR)/poll_example: $(OBJ_DIR)/poll_example.o $(STATIC_LIB) | $(BIN_DIR)
 examples: $(addprefix $(BIN_DIR)/, $(EXAMPLES))
 
 # Test target
-test: $(BIN_DIR)/test_button
+test: $(BIN_DIR)/test_button $(BIN_DIR)/test_button_no_double
 	@echo "Running unit tests..."
 	@$(BIN_DIR)/test_button
+	@$(BIN_DIR)/test_button_no_double
 
 # Build test binary
 $(BIN_DIR)/test_button: $(OBJ_DIR)/test_button.o $(STATIC_LIB) | $(BIN_DIR)
@@ -102,6 +103,9 @@ $(BIN_DIR)/test_button: $(OBJ_DIR)/test_button.o $(STATIC_LIB) | $(BIN_DIR)
 
 $(OBJ_DIR)/test_button.o: tests/test_button.c multi_button.h | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BIN_DIR)/test_button_no_double: multi_button.c tests/test_button_no_double.c multi_button.h | $(BIN_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -DMULTIBUTTON_ENABLE_DOUBLE_CLICK=0 multi_button.c tests/test_button_no_double.c -o $@
 
 # Clean build files
 clean:
@@ -162,4 +166,4 @@ $(OBJ_DIR)/test_button.o: tests/test_button.c multi_button.h
 $(OBJ_DIR)/multi_button.o: multi_button.c multi_button.h
 $(OBJ_DIR)/basic_example.o: $(EXAMPLES_DIR)/basic_example.c multi_button.h
 $(OBJ_DIR)/advanced_example.o: $(EXAMPLES_DIR)/advanced_example.c multi_button.h
-$(OBJ_DIR)/poll_example.o: $(EXAMPLES_DIR)/poll_example.c multi_button.h 
+$(OBJ_DIR)/poll_example.o: $(EXAMPLES_DIR)/poll_example.c multi_button.h

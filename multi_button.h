@@ -14,16 +14,37 @@
 #define MULTIBUTTON_VERSION_MINOR 1
 #define MULTIBUTTON_VERSION_PATCH 1
 
-// Configuration constants - can be modified according to your needs
-#define TICKS_INTERVAL          5    // ms - timer interrupt interval
-#define DEBOUNCE_TICKS          3    // MAX 7 (0 ~ 7) - debounce filter depth
-#define SHORT_TICKS             (300 / TICKS_INTERVAL)   // short press threshold
-#define LONG_TICKS              (1000 / TICKS_INTERVAL)  // long press threshold
-#define PRESS_REPEAT_MAX_NUM    15   // maximum repeat counter value
+// Configuration constants. They may be overridden by compiler definitions.
+#ifndef TICKS_INTERVAL
+#define TICKS_INTERVAL          5U    // ms - legacy periodic timer interval
+#endif
+#ifndef DEBOUNCE_TICKS
+#define DEBOUNCE_TICKS          3U    // debounce duration in legacy ticks
+#endif
+#ifndef SHORT_TICKS
+#define SHORT_TICKS             (300U / TICKS_INTERVAL)
+#endif
+#ifndef LONG_TICKS
+#define LONG_TICKS              (1000U / TICKS_INTERVAL)
+#endif
+#ifndef LONG_HOLD_TICKS
+#define LONG_HOLD_TICKS         1U    // hold callback period in legacy ticks
+#endif
+#ifndef PRESS_REPEAT_MAX_NUM
+#define PRESS_REPEAT_MAX_NUM    15U
+#endif
+#ifndef MULTIBUTTON_ENABLE_DOUBLE_CLICK
+#define MULTIBUTTON_ENABLE_DOUBLE_CLICK 1
+#endif
 
-// Compile-time check: debounce_cnt is a 3-bit field, max value is 7
-#if DEBOUNCE_TICKS > 7
-  #error "DEBOUNCE_TICKS exceeds 3-bit field maximum (7)"
+#if DEBOUNCE_TICKS < 1
+  #error "DEBOUNCE_TICKS must be at least 1"
+#endif
+#if TICKS_INTERVAL < 1
+  #error "TICKS_INTERVAL must be at least 1 ms"
+#endif
+#if MULTIBUTTON_ENABLE_DOUBLE_CLICK != 0 && MULTIBUTTON_ENABLE_DOUBLE_CLICK != 1
+  #error "MULTIBUTTON_ENABLE_DOUBLE_CLICK must be 0 or 1"
 #endif
 
 // Forward declaration
@@ -67,6 +88,8 @@ struct _Button {
 	uint8_t  (*hal_button_level)(uint8_t button_id);  // HAL function to read GPIO
 	BtnCallback cb[BTN_EVENT_COUNT];    // callback function array
 	void*    user_data;                 // user context pointer passed to callbacks
+	uint32_t tick_remainder_ms;         // elapsed time not forming a complete tick
+	uint32_t debounce_elapsed_ms;       // time elapsed since a level change
 	Button* next;                       // next button in linked list
 };
 
@@ -103,6 +126,15 @@ ButtonEvent button_get_event(Button* handle);
 int  button_start(Button* handle);
 void button_stop(Button* handle);
 void button_ticks(void);
+
+/**
+ * Process elapsed time and return the delay until the next required scan.
+ *
+ * Call this function from a one-shot timer and whenever a GPIO edge wakes the
+ * system. elapsed_ms is the actual time since the previous call. A return value
+ * of 0 means no timer is needed; scanning can remain stopped until a GPIO edge.
+ */
+uint32_t button_ticks_low_power(uint32_t elapsed_ms);
 
 // Utility functions
 uint8_t button_get_repeat_count(Button* handle);
