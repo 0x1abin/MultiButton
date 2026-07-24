@@ -7,12 +7,12 @@ A compact and flexible multi-button state machine library for embedded systems.
 ## Features
 
 - **7 event types**: press down, press up, single click, double click, long press start, long press hold, repeat press
-- **Hardware debounce**: built-in digital filter eliminates contact bounce
+- **Software debounce**: deferred level confirmation filters contact bounce
 - **State machine driven**: reliable state transitions with clear logic
 - **Unlimited buttons**: linked-list architecture supports any number of button instances
 - **Callback & polling**: flexible event handling via callbacks or polling `button_get_event()`
 - **Memory efficient**: compact bitfield struct (~30 bytes per button)
-- **Configurable**: adjustable timing thresholds and debounce depth
+- **Configurable**: adjustable timing thresholds and debounce duration
 - **Thread-safe option**: optional RTOS lock hooks with zero overhead on bare-metal
 
 ## Quick Start
@@ -101,6 +101,7 @@ void button_detach(Button* handle, ButtonEvent event);
 int  button_start(Button* handle);   // returns 0=ok, -1=duplicate, -2=invalid
 void button_stop(Button* handle);
 void button_ticks(void);             // call every 5ms from timer
+uint32_t button_ticks_low_power(uint32_t elapsed_ms);
 ```
 
 ### Utility Functions
@@ -142,11 +143,112 @@ Edit the defines in `multi_button.h`:
 
 ```c
 #define TICKS_INTERVAL       5     // timer tick interval (ms)
-#define DEBOUNCE_TICKS       3     // debounce filter depth (max 7)
+#define DEBOUNCE_TICKS       3     // debounce duration in legacy ticks
 #define SHORT_TICKS          (300  / TICKS_INTERVAL)  // short press threshold
 #define LONG_TICKS           (1000 / TICKS_INTERVAL)  // long press threshold
 #define PRESS_REPEAT_MAX_NUM 15    // max repeat counter
+#define MULTIBUTTON_ENABLE_DOUBLE_CLICK 1 // enable double-click detection
 ```
+
+### Optional double-click detection
+
+Double-click detection is enabled by default for backward compatibility. It
+can be disabled before including the header:
+
+```c
+#define MULTIBUTTON_ENABLE_DOUBLE_CLICK 0
+#include "multi_button.h"
+```
+
+It can also be disabled with
+`-DMULTIBUTTON_ENABLE_DOUBLE_CLICK=0`. When disabled, release debounce
+immediately emits `BTN_PRESS_UP` followed by `BTN_SINGLE_CLICK`, returns the
+button to idle, and does not schedule the `SHORT_TICKS` double-click window.
+`BTN_DOUBLE_CLICK` and `BTN_PRESS_REPEAT` are not generated. This removes the
+extra wake-up after every short press.
+
+## Low-power/event-driven operation
+
+`button_ticks()` remains available for applications using a fixed periodic
+timer. Low-power applications can use:
+
+```c
+uint32_t button_ticks_low_power(uint32_t elapsed_ms);
+```
+
+`elapsed_ms` is the actual number of milliseconds since the previous call.
+The return value is the delay before the next required scan:
+
+- A non-zero value means that a one-shot timer must be armed for that delay.
+- Zero means that no timer is required. The MCU may sleep until a button GPIO
+  edge occurs.
+- On a GPIO edge, call the function again and re-arm the one-shot timer from
+  the new return value.
+- With multiple buttons, the return value is the earliest deadline required by
+  any registered button.
+
+```c
+static uint32_t last_scan_ms;
+
+static uint32_t elapsed_ms_since(uint32_t now, uint32_t previous)
+{
+    /*
+     * Unsigned subtraction is modulo 2^32, so this remains correct across
+     * one platform_millis() wrap, provided the real interval is < 2^32 ms.
+     */
+    return now - previous;
+}
+
+static void button_scan_and_reschedule(void)
+{
+    uint32_t now = platform_millis();
+    uint32_t elapsed = elapsed_ms_since(now, last_scan_ms);
+    uint32_t delay = button_ticks_low_power(elapsed);
+    last_scan_ms = now;
+
+    platform_cancel_button_timer();
+    if (delay != 0U) {
+        platform_start_button_oneshot(delay,
+                                      button_scan_and_reschedule);
+    }
+}
+
+void button_gpio_edge_isr(void)
+{
+    platform_defer_from_isr(button_scan_and_reschedule);
+}
+
+void button_low_power_start(void)
+{
+    last_scan_ms = platform_millis();
+    platform_enable_button_both_edge_irq();
+}
+```
+
+The GPIO interrupt must cover both press and release edges. Run the state
+machine in task or main-loop context unless every registered callback is
+ISR-safe.
+
+The example assumes that `platform_millis()` returns a monotonically
+incrementing `uint32_t` counter that wraps at `UINT32_MAX`. Unsigned subtraction
+handles one such wrap without a conditional branch. A platform using a
+different counter width or an earlier custom modulus must provide its own
+elapsed-time conversion.
+
+Debouncing uses one deferred confirmation read. The first changed sample
+schedules a delay of `DEBOUNCE_TICKS * TICKS_INTERVAL`; the new level is
+accepted only if it is still different from the previous stable level at the
+deadline. The library therefore does not require periodic timer wake-ups
+during the debounce interval.
+
+Mechanical bounce can still wake the MCU through repeated GPIO interrupts. A
+platform seeking the lowest possible power may mask that button's edge
+interrupt after the first edge, keep it masked for the debounce interval, and
+restore it after the deferred confirmation read.
+
+If no `BTN_LONG_PRESS_HOLD` callback is attached, the timer stops after
+`BTN_LONG_PRESS_START` and resumes on the release edge. Attaching a hold
+callback intentionally keeps a timer active at the `LONG_HOLD_TICKS` period.
 
 ## Thread Safety (RTOS)
 

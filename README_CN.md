@@ -5,7 +5,7 @@
 ## 功能特性
 
 - **多种按键事件**: 按下、抬起、单击、双击、长按开始、长按保持、重复按下
-- **硬件去抖**: 内置数字滤波，消除按键抖动
+- **软件去抖**: 延迟确认电平，过滤机械按键抖动
 - **状态机驱动**: 清晰的状态转换逻辑，可靠性高
 - **多按键支持**: 支持无限数量的按键实例
 - **回调机制**: 灵活的事件回调函数注册，支持 `void* user_data` 上下文指针
@@ -160,6 +160,16 @@ typedef enum {
 #### `void button_ticks(void)`
 **功能**: 后台处理函数 (每 5ms 调用一次)
 
+#### `uint32_t button_ticks_low_power(uint32_t elapsed_ms)`
+**功能**: 按实际经过时间推进状态机，并返回下一次必要扫描前的毫秒延时
+
+**参数**:
+- `elapsed_ms`: 距离上一次调用实际经过的毫秒数
+
+**返回值**:
+- 非零：下一次一次性定时器的延时
+- 0：当前不需要定时扫描，可等待 GPIO 边沿唤醒
+
 ### 工具函数
 
 #### `ButtonEvent button_get_event(Button* handle)`
@@ -217,17 +227,105 @@ button_attach(&btn, BTN_PRESS_REPEAT, on_repeat, NULL);
 
 说明: `BTN_SINGLE_CLICK` 在 repeat==1 时触发，`BTN_DOUBLE_CLICK` 在 repeat==2 时触发。repeat>=3 时，仅 `BTN_PRESS_REPEAT` 在按下过程中触发。
 
+## 低功耗/事件驱动模式
+
+原有的 `button_ticks()` 固定周期接口保持兼容。低功耗应用可以改用：
+
+```c
+uint32_t button_ticks_low_power(uint32_t elapsed_ms);
+```
+
+`elapsed_ms` 是距离上一次调用实际经过的毫秒数。返回值表示下一次必须扫描
+前的延时：
+
+- 返回非零值：启动对应延时的一次性定时器；
+- 返回 0：不再需要定时扫描，MCU 可以休眠并等待按键 GPIO 边沿；
+- GPIO 边沿唤醒后再次调用本函数，并根据新的返回值重设一次性定时器。
+- 存在多个按键时，返回值是所有已注册按键中最早的下一次期限。
+
+去抖采用延迟复读：首次检测到电平变化后，只安排一次
+`DEBOUNCE_TICKS * TICKS_INTERVAL` 延时；到期复读时若仍与原稳定电平不同，
+才确认本次变化。去抖窗口内不需要周期唤醒。
+
+```c
+static uint32_t last_scan_ms;
+
+static uint32_t elapsed_ms_since(uint32_t now, uint32_t previous)
+{
+    /*
+     * uint32_t 无符号减法按模 2^32 运算。只要实际间隔小于 2^32 ms，
+     * platform_millis() 发生一次回绕后仍能得到正确的经过时间。
+     */
+    return now - previous;
+}
+
+static void scan_and_reschedule(void)
+{
+    uint32_t now = platform_millis();
+    uint32_t elapsed = elapsed_ms_since(now, last_scan_ms);
+    uint32_t delay = button_ticks_low_power(elapsed);
+    last_scan_ms = now;
+
+    platform_cancel_button_timer();
+    if (delay != 0) {
+        platform_start_button_oneshot(delay, scan_and_reschedule);
+    }
+}
+
+void button_gpio_edge_isr(void)
+{
+    platform_defer_from_isr(scan_and_reschedule);
+}
+
+void button_low_power_start(void)
+{
+    last_scan_ms = platform_millis();
+    platform_enable_button_both_edge_irq();
+}
+```
+
+GPIO 中断必须同时覆盖按下和松开边沿。若回调函数不能在中断环境运行，应将
+实际扫描延后到主循环或任务上下文。
+
+示例假定 `platform_millis()` 返回在 `UINT32_MAX` 后回绕的单调递增
+`uint32_t` 计数器。无符号减法可以自动处理一次这种回绕，无需额外分支。如果
+平台采用其他位宽或提前回绕的自定义模数，应由平台层自行换算经过时间。
+
+延迟复读只消除了去抖期间的软件定时器周期唤醒。机械抖动仍可能通过多个 GPIO
+边沿中断唤醒 MCU。追求最低功耗的平台可以在首次边沿后临时屏蔽该按键中断，
+保持屏蔽直到去抖定时器到期并完成复读，然后恢复按下和松开双边沿中断。
+
+未注册 `BTN_LONG_PRESS_HOLD` 回调时，组件在发出
+`BTN_LONG_PRESS_START` 后停止定时扫描，直到松开边沿唤醒。注册保持回调后，
+组件会按照 `LONG_HOLD_TICKS` 周期继续唤醒。
+
 ## 配置选项
 
 在 `multi_button.h` 中可以自定义以下参数:
 
 ```c
 #define TICKS_INTERVAL          5       // 定时器中断间隔 (ms)
-#define DEBOUNCE_TICKS          3       // 去抖深度 (最大 7)
+#define DEBOUNCE_TICKS          3       // 去抖时间，单位为兼容接口 tick
 #define SHORT_TICKS             (300  / TICKS_INTERVAL)  // 短按阈值
 #define LONG_TICKS              (1000 / TICKS_INTERVAL)  // 长按阈值
 #define PRESS_REPEAT_MAX_NUM    15      // 最大重复计数
+#define MULTIBUTTON_ENABLE_DOUBLE_CLICK 1 // 是否检测双击
 ```
+
+### 可选双击检测
+
+为保持兼容，双击检测默认开启。可在包含头文件前关闭：
+
+```c
+#define MULTIBUTTON_ENABLE_DOUBLE_CLICK 0
+#include "multi_button.h"
+```
+
+也可以使用编译参数 `-DMULTIBUTTON_ENABLE_DOUBLE_CLICK=0`。关闭后，松开去抖
+完成时会立即依次产生 `BTN_PRESS_UP` 和 `BTN_SINGLE_CLICK`，随后直接返回空闲
+状态，不再启动 `SHORT_TICKS` 双击等待定时器，也不会产生
+`BTN_DOUBLE_CLICK` 和 `BTN_PRESS_REPEAT`。因此每次短按可以少一次双击窗口结束
+时的唤醒。
 
 ## 重要注意事项
 

@@ -450,13 +450,9 @@ static int test_debounce_boundary(void)
 {
     setup_button();
 
-    /* Hold for exactly DEBOUNCE_TICKS - should register */
+    /* Detection starts now; confirmation occurs after the full duration. */
     mock_gpio_value = 1;
-    tick_n(DEBOUNCE_TICKS);
-
-    /* After exactly DEBOUNCE_TICKS of consistent high reading,
-     * the level should have changed and press detected */
-    tick_n(5);  /* a few more ticks for state machine to process */
+    tick_n(DEBOUNCE_TICKS + 1);
 
     ASSERT(has_event(BTN_PRESS_DOWN));
 
@@ -487,6 +483,150 @@ static int test_rapid_press_release(void)
     return 0;
 }
 
+/* Test 16: low-power mode stops its timer while all buttons are idle */
+static int test_low_power_idle(void)
+{
+    setup_button();
+
+    ASSERT(button_ticks_low_power(0) == 0);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 17: an edge starts debounce and schedules only required deadlines */
+static int test_low_power_long_press(void)
+{
+    uint32_t next;
+
+    setup_button();
+    mock_gpio_value = 1;
+
+    next = button_ticks_low_power(0); /* GPIO edge wake-up */
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+
+    next = button_ticks_low_power(next); /* one deferred debounce read */
+    ASSERT(has_event(BTN_PRESS_DOWN));
+    ASSERT(next == LONG_TICKS * TICKS_INTERVAL);
+
+    next = button_ticks_low_power(next);
+    ASSERT(count_event(BTN_LONG_PRESS_START) == 1);
+    ASSERT(next == LONG_HOLD_TICKS * TICKS_INTERVAL);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 18: without a hold callback, long press can sleep until release edge */
+static int test_low_power_long_press_without_hold(void)
+{
+    uint32_t next;
+
+    setup_button();
+    button_detach(&test_btn, BTN_LONG_PRESS_HOLD);
+    mock_gpio_value = 1;
+
+    next = button_ticks_low_power(0);
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+    next = button_ticks_low_power(next);
+    next = button_ticks_low_power(next);
+
+    ASSERT(has_event(BTN_LONG_PRESS_START));
+    ASSERT(!has_event(BTN_LONG_PRESS_HOLD));
+    ASSERT(next == 0);
+
+    mock_gpio_value = 0;
+    next = button_ticks_low_power(100); /* release GPIO edge */
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+    next = button_ticks_low_power(next);
+    ASSERT(has_event(BTN_PRESS_UP));
+    ASSERT(next == 0);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 19: a held second press still schedules and reaches long press */
+static int test_low_power_second_press_long(void)
+{
+    uint32_t next;
+
+    setup_button();
+    button_detach(&test_btn, BTN_LONG_PRESS_HOLD);
+
+    mock_gpio_value = 1;
+    next = button_ticks_low_power(0);
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+    next = button_ticks_low_power(next);
+
+    mock_gpio_value = 0;
+    next = button_ticks_low_power(50);
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+    next = button_ticks_low_power(next);
+
+    mock_gpio_value = 1;
+    next = button_ticks_low_power(50);
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+    next = button_ticks_low_power(next);
+    ASSERT(has_event(BTN_PRESS_REPEAT));
+
+    next = button_ticks_low_power(next);
+    ASSERT(next > 0);
+    next = button_ticks_low_power(next);
+    ASSERT(has_event(BTN_LONG_PRESS_START));
+    ASSERT(next == 0);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 20: a transient edge is rejected by the single deferred read */
+static int test_low_power_debounce_rejects_glitch(void)
+{
+    uint32_t next;
+
+    setup_button();
+    mock_gpio_value = 1;
+
+    next = button_ticks_low_power(0);
+    ASSERT(next == DEBOUNCE_TICKS * TICKS_INTERVAL);
+
+    /* The input returned to the old stable level before the timer expired. */
+    mock_gpio_value = 0;
+    next = button_ticks_low_power(next);
+
+    ASSERT(!has_event(BTN_PRESS_DOWN));
+    ASSERT(next == 0);
+
+    teardown_button();
+    return 0;
+}
+
+/* Test 21: sub-tick remainder is deducted from the next deadline */
+static int test_low_power_sub_tick_deadline(void)
+{
+    uint32_t next;
+
+    setup_button();
+    button_detach(&test_btn, BTN_LONG_PRESS_HOLD);
+    mock_gpio_value = 1;
+
+    next = button_ticks_low_power(0);
+    next = button_ticks_low_power(next);
+    ASSERT(next == LONG_TICKS * TICKS_INTERVAL);
+
+    next = button_ticks_low_power(next - 1U);
+    ASSERT(!has_event(BTN_LONG_PRESS_START));
+    ASSERT(next == 1U);
+
+    next = button_ticks_low_power(next);
+    ASSERT(has_event(BTN_LONG_PRESS_START));
+    ASSERT(next == 0);
+
+    teardown_button();
+    return 0;
+}
+
 /* ============================================================ */
 
 int main(void)
@@ -511,6 +651,12 @@ int main(void)
     RUN_TEST(test_user_data);
     RUN_TEST(test_debounce_boundary);
     RUN_TEST(test_rapid_press_release);
+    RUN_TEST(test_low_power_idle);
+    RUN_TEST(test_low_power_long_press);
+    RUN_TEST(test_low_power_long_press_without_hold);
+    RUN_TEST(test_low_power_second_press_long);
+    RUN_TEST(test_low_power_debounce_rejects_glitch);
+    RUN_TEST(test_low_power_sub_tick_deadline);
 
     printf("\nResults: %d/%d passed", tests_passed, tests_run);
     if (tests_failed > 0) {
