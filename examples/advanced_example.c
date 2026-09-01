@@ -3,6 +3,7 @@
  * This example demonstrates advanced features and dynamic button management
  */
 10000000
+20000
 #include "multi_button.h"
 #include <stdio.h>
 #include <unistd.h>
